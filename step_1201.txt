@@ -1,0 +1,67 @@
+<USER_REQUEST>
+### SYSTEM ROLE & TARGET TASKS: OTP BYPASS SWITCH & INSTAGRAM COPY ALIGNMENT
+
+Antigravity, the client is hesitant about completely removing the backend OTP verification code. We need to implement a soft bypass framework. Do NOT delete the core OTP database tracking logic, transient generators, or validation scripts. Instead, we are going to bypass it for our active staging/testing loops and update our homepage messaging. Generate full-length, un-truncated file code blocks with zero placeholders.
+
+---
+
+### 🔍 SPECIFIC PRESENTATION, COPY, AND LOGIC OVERRIDES
+
+#### 1. Soft OTP Frontend Bypass Loop (`inc/auth-profile-engine.php` / `app.js`)
+- Do NOT delete the OTP database tables or functions. 
+- Instead, refactor the registration handler in `app.js` and `page-join.php` so that when a user clicks register, it automatically skips the SMS verification modal pop-up screens.
+- In the backend handler, auto-approve the registration step temporarily or route them straight to the "Pending Admin Verification" status gate, while still dispatching the administrator notification email (`wp_mail`).
+- Keep the core logic sleeping in the background so we can toggle it back on instantly if the client requests it for the live GoDaddy launch.
+
+#### 2. Global Core Messaging Update (Homepage Grid & `functions.php`)
+- Remove all mentions of "Travel Circles", spiritual group tours, or pilgrimage experiences across headers, heroes, layouts, and meta tags.
+- Inject the client's official core positioning headline string across the primary homepage showcase container:
+  - **"Aapki Pasand, Aapki Raftar, Aapke Log"**
+- Directly beneath this headline, add the step-by-step engagement pipeline text requested by the client:
+  - *"Connect based on age group, city, hobbies, and interests. Talk safely, build genuine friendships, meet up for local activities, and, if mutually comfortable, explore meaningful relationships."*
+
+#### 3. Visual & Text Metamorphosis (Using Instagram Creatives Guidelines)
+- **Feature Block 1 Override (Compani
+<truncated 3381 bytes>
+ we want the website to follow.
+
+Please review the Instagram page and align the website design, imagery and homepage messaging accordingly.
+10:29 PM
+
+@secondinnings50.in
+10:30 PM
+
+User Avatar
+Please review our Instagram page for the overall visual direction.
+
+However, the website will also need new images. The current Travel / Teerath visuals should be replaced with friendship, companionship, conversations, meetups and community-focused imagery similar to our Instagram creatives.
+
+The website should visually communicate meaningful connections, not travel experiences.
+
+
+Thanks Chandra.
+Before deployment and milestone release, I want to finalize a few important concept changes.
+Please completely remove the Travel / Teerath section from the website.
+The website should focus on companionship, friendship, meaningful connections and community building similar to our Instagram positioning.
+Please add a section based on:
+“Aapki Pasand, Aapki Raftar, Aapke Log”
+Users should be able to connect based on age group, city, hobbies and interests. They can first talk, build friendship, meet for activities and, if mutually comfortable, explore meaningful relationships.
+Also update the website with more engaging lifestyle images similar to our Instagram content.
+Once these changes are incorporated, I will review and proceed further.
+
+}
+
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-06-11T11:56:32+05:30.
+
+The user's current state is as follows:
+Active Document: c:\Users\tarig\Desktop\Freelancer pank\inc\admin-dashboard.php (LANGUAGE_PHP)
+Cursor is on line: 1
+Other open documents:
+- c:\Users\tarig\Desktop\Freelancer pank\inc\auth-profile-engine.php (LANGUAGE_PHP)
+- c:\Users\tarig\Desktop\Freelancer pank\inc\production-engine.php (LANGUAGE_PHP)
+- c:\Users\tarig\Desktop\Freelancer pank\page-profile.php (LANGUAGE_PHP)
+- c:\Users\tarig\Desktop\Freelancer pank\inc\admin-dashboard.php (LANGUAGE_PHP)
+- c:\Users\tarig\Desktop\Freelancer pank\app.js (LANGUAGE_JAVASCRIPT)
+</ADDITIONAL_METADATA>
