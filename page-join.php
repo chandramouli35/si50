@@ -328,7 +328,7 @@ get_header();
               <div class="form-row-2col">
                 <div class="form-group">
                   <label for="join-age" class="form-label"><?php esc_html_e( 'Age', 'secondinnings50' ); ?> <span class="required">*</span></label>
-                  <input type="number" id="join-age" name="age" class="form-control" placeholder="<?php esc_attr_e( 'e.g. 53', 'secondinnings50' ); ?>" required aria-required="true" min="40" max="100">
+                  <input type="text" inputmode="numeric" pattern="\d*" id="join-age" name="age" class="form-control" placeholder="<?php esc_attr_e( 'e.g. 53', 'secondinnings50' ); ?>" required aria-required="true" min="40" max="100">
                   <span class="error-msg" id="join-age-error" aria-live="polite"></span>
                 </div>
 
@@ -337,11 +337,10 @@ get_header();
                   <select id="join-marital" name="marital_status" class="form-control select-control" required aria-required="true">
                     <option value="" disabled selected><?php esc_html_e( 'Select Marital Status', 'secondinnings50' ); ?></option>
                     <option value="Single"><?php esc_html_e( 'Single', 'secondinnings50' ); ?></option>
-                    <option value="Married"><?php esc_html_e( 'Married', 'secondinnings50' ); ?></option>
                     <option value="Separated"><?php esc_html_e( 'Separated', 'secondinnings50' ); ?></option>
+                    <option value="Divorce in Process / Awaiting Divorce"><?php esc_html_e( 'Divorce in Process / Awaiting Divorce', 'secondinnings50' ); ?></option>
                     <option value="Divorced"><?php esc_html_e( 'Divorced', 'secondinnings50' ); ?></option>
                     <option value="Widow/Widower"><?php esc_html_e( 'Widow/Widower', 'secondinnings50' ); ?></option>
-                    <option value="Prefer not to say"><?php esc_html_e( 'Prefer not to say', 'secondinnings50' ); ?></option>
                   </select>
                   <span class="error-msg" id="join-marital-error" aria-live="polite"></span>
                 </div>

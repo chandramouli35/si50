@@ -855,10 +855,11 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 										<label for="profile-marital" class="form-label"><?php esc_html_e( 'Marital Status', 'secondinnings50' ); ?> <span class="required">*</span></label>
 										<select id="profile-marital" name="marital_status" class="form-control select-control" required aria-required="true">
 											<option value="" disabled><?php esc_html_e( 'Select Marital Status', 'secondinnings50' ); ?></option>
-											<option value="Single" <?php selected( $m_marital, 'Single' ); ?>><?php esc_html_e( 'Single / Never Married', 'secondinnings50' ); ?></option>
-											<option value="Divorced" <?php selected( $m_marital, 'Divorced' ); ?>><?php esc_html_e( 'Divorced', 'secondinnings50' ); ?></option>
-											<option value="Widowed" <?php selected( $m_marital, 'Widowed' ); ?>><?php esc_html_e( 'Widowed', 'secondinnings50' ); ?></option>
+											<option value="Single" <?php selected( $m_marital, 'Single' ); ?>><?php esc_html_e( 'Single', 'secondinnings50' ); ?></option>
 											<option value="Separated" <?php selected( $m_marital, 'Separated' ); ?>><?php esc_html_e( 'Separated', 'secondinnings50' ); ?></option>
+											<option value="Divorce in Process / Awaiting Divorce" <?php selected( $m_marital, 'Divorce in Process / Awaiting Divorce' ); ?>><?php esc_html_e( 'Divorce in Process / Awaiting Divorce', 'secondinnings50' ); ?></option>
+											<option value="Divorced" <?php selected( $m_marital, 'Divorced' ); ?>><?php esc_html_e( 'Divorced', 'secondinnings50' ); ?></option>
+											<option value="Widow/Widower" <?php selected( $m_marital, 'Widow/Widower' ); ?>><?php esc_html_e( 'Widow/Widower', 'secondinnings50' ); ?></option>
 										</select>
 										<span class="error-msg" id="profile-marital-error" aria-live="polite"></span>
 									</div>

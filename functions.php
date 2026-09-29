@@ -1555,3 +1555,137 @@ function si50_handle_download_profile_card() {
     }
 }
 add_action( 'init', 'si50_handle_download_profile_card' );
+
+// ---------------------------------------------------------
+// ADD SI50 CUSTOM META TO WP ADMIN USER PROFILE FOR EDITING
+// ---------------------------------------------------------
+add_action( 'show_user_profile', 'si50_admin_edit_user_profile' );
+add_action( 'edit_user_profile', 'si50_admin_edit_user_profile' );
+function si50_admin_edit_user_profile( $user ) {
+    if ( ! current_user_can('manage_options') ) return;
+    ?>
+    <h3>SecondInnings50 Profile Data</h3>
+    <table class="form-table">
+        <tr>
+            <th><label for="si50_verification_selfie_url">Photo URL</label></th>
+            <td>
+                <?php $photo = get_user_meta( $user->ID, 'si50_verification_selfie_url', true ); ?>
+                <?php if($photo): ?><img src="<?php echo esc_url($photo); ?>" style="max-width:150px; display:block; margin-bottom:10px; border-radius:8px;"/><?php endif; ?>
+                <input type="text" name="si50_verification_selfie_url" id="si50_verification_selfie_url" value="<?php echo esc_attr( $photo ); ?>" class="regular-text" />
+                <p class="description">Paste an image URL here to manually change the member's photo.</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="si50_fullname">Full Name</label></th>
+            <td><input type="text" name="si50_fullname" id="si50_fullname" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_fullname', true ) ); ?>" class="regular-text" /></td>
+        </tr>
+        <tr>
+            <th><label for="si50_age_bracket">Age</label></th>
+            <td><input type="text" name="si50_age_bracket" id="si50_age_bracket" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_age_bracket', true ) ); ?>" class="regular-text" /></td>
+        </tr>
+        <tr>
+            <th><label for="si50_city_state">City & State</label></th>
+            <td><input type="text" name="si50_city_state" id="si50_city_state" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_city_state', true ) ); ?>" class="regular-text" /></td>
+        </tr>
+        <tr>
+            <th><label for="si50_occupation">Occupation</label></th>
+            <td><input type="text" name="si50_occupation" id="si50_occupation" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_occupation', true ) ); ?>" class="regular-text" /></td>
+        </tr>
+        <tr>
+            <th><label for="si50_marital_status">Marital Status</label></th>
+            <td>
+                <select name="si50_marital_status" id="si50_marital_status">
+                    <?php 
+                    $m_status = get_user_meta( $user->ID, 'si50_marital_status', true );
+                    $options = ['Single', 'Separated', 'Divorce in Process / Awaiting Divorce', 'Divorced', 'Widow/Widower'];
+                    foreach($options as $opt) {
+                        echo '<option value="' . esc_attr($opt) . '" ' . selected($m_status, $opt, false) . '>' . esc_html($opt) . '</option>';
+                    }
+                    ?>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="si50_phone">Phone Number</label></th>
+            <td><input type="text" name="si50_phone" id="si50_phone" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_phone', true ) ); ?>" class="regular-text" /></td>
+        </tr>
+        <tr>
+            <th><label for="si50_looking_for">Looking For (Preferences)</label></th>
+            <td>
+                <textarea name="si50_looking_for" id="si50_looking_for" rows="3" cols="50" class="large-text"><?php echo esc_textarea( implode(', ', (array)get_user_meta( $user->ID, 'si50_looking_for', true )) ); ?></textarea>
+                <p class="description">Comma-separated values (e.g. Friendship, Shared Life Partnership)</p>
+            </td>
+        </tr>
+        <tr>
+            <th><label for="si50_hobbies_interests">Interests & Hobbies</label></th>
+            <td>
+                <textarea name="si50_hobbies_interests" id="si50_hobbies_interests" rows="3" cols="50" class="large-text"><?php echo esc_textarea( implode(', ', (array)get_user_meta( $user->ID, 'si50_hobbies_interests', true )) ); ?></textarea>
+                <p class="description">Comma-separated values.</p>
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+
+add_action( 'personal_options_update', 'si50_admin_save_user_profile' );
+add_action( 'edit_user_profile_update', 'si50_admin_save_user_profile' );
+function si50_admin_save_user_profile( $user_id ) {
+    if ( ! current_user_can( 'edit_user', $user_id ) ) return false;
+    
+    // Save simple text fields
+    $text_fields = ['si50_verification_selfie_url', 'si50_fullname', 'si50_age_bracket', 'si50_city_state', 'si50_occupation', 'si50_marital_status', 'si50_phone'];
+    foreach ($text_fields as $field) {
+        if ( isset($_POST[$field]) ) {
+            update_user_meta( $user_id, $field, sanitize_text_field($_POST[$field]) );
+        }
+    }
+    
+    // Save array fields (split by comma)
+    $array_fields = ['si50_looking_for', 'si50_hobbies_interests'];
+    foreach ($array_fields as $field) {
+        if ( isset($_POST[$field]) ) {
+            $arr = array_map('trim', explode(',', sanitize_text_field($_POST[$field])));
+            $arr = array_filter($arr); // remove empty
+            update_user_meta( $user_id, $field, $arr );
+        }
+    }
+}
+
+
+function si50_get_location_tier($user_a, $user_b) {
+	$city_a = strtolower( trim( get_user_meta( $user_a, 'si50_city_state', true ) ) );
+	$city_b = strtolower( trim( get_user_meta( $user_b, 'si50_city_state', true ) ) );
+	
+	if ( empty($city_a) || empty($city_b) ) return 1;
+	
+	if ( $city_a === $city_b ) return 4; // Exact Same City
+	
+	$parts_a = array_map('trim', explode(',', $city_a));
+	$parts_b = array_map('trim', explode(',', $city_b));
+	$state_a = count($parts_a) > 1 ? end($parts_a) : $city_a;
+	$state_b = count($parts_b) > 1 ? end($parts_b) : $city_b;
+	
+	if ( $state_a === $state_b ) return 3; // Same State
+	
+	$zones = array(
+		'north' => array('delhi', 'punjab', 'haryana', 'uttar pradesh', 'rajasthan', 'himachal', 'uttarakhand', 'kashmir', 'chandigarh', 'ncr', 'gurgaon', 'noida'),
+		'south' => array('kerala', 'tamil nadu', 'karnataka', 'andhra', 'telangana', 'puducherry', 'chennai', 'bangalore', 'hyderabad'),
+		'east' => array('west bengal', 'odisha', 'bihar', 'jharkhand', 'assam', 'sikkim', 'meghalaya', 'kolkata'),
+		'west' => array('maharashtra', 'gujarat', 'goa', 'daman', 'diu', 'dadra', 'mumbai', 'pune', 'nashik', 'surat', 'ahmedabad'),
+		'central' => array('madhya pradesh', 'chhattisgarh', 'indore', 'bhopal')
+	);
+	
+	$zone_a = 'pan-india';
+	$zone_b = 'pan-india-b';
+	
+	foreach ($zones as $zone => $states) {
+		foreach ($states as $s) {
+			if (strpos($state_a, $s) !== false || strpos($city_a, $s) !== false) $zone_a = $zone;
+			if (strpos($state_b, $s) !== false || strpos($city_b, $s) !== false) $zone_b = $zone;
+		}
+	}
+	
+	if ( $zone_a === $zone_b && $zone_a !== 'pan-india' ) return 2; // Same Zone
+	
+	return 1; // Pan India
+}

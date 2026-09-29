@@ -728,8 +728,48 @@ function si50_calculate_compatibility( $user_a, $user_b ) {
 	$common_hobbies = array_intersect( $hobbies_a, $hobbies_b );
 	$hobbies_score = ! empty( $hobbies_a ) ? ( count( $common_hobbies ) / count( $hobbies_a ) ) * 25 : 10;
 
-	// 4. Residing in same city (weight: 15%)
-	$city_score = ( ! empty( $city_a ) && $city_a === $city_b ) ? 15 : 5;
+	// 4. Residing in same city, state, or zone (weight: 25%)
+	$city_score = 5;
+	if ( ! empty( $city_a ) && ! empty( $city_b ) ) {
+		if ( $city_a === $city_b ) {
+			$city_score = 25; // Exact same city/state string
+		} else {
+			// Try to extract state (assuming "City, State" format)
+			$parts_a = array_map('trim', explode(',', $city_a));
+			$parts_b = array_map('trim', explode(',', $city_b));
+			$state_a = count($parts_a) > 1 ? end($parts_a) : $city_a;
+			$state_b = count($parts_b) > 1 ? end($parts_b) : $city_b;
+			
+			if ( $state_a === $state_b ) {
+				$city_score = 18; // Same state
+			} else {
+				// Zone matching (simplified heuristic based on state strings)
+				$zones = array(
+					'north' => array('delhi', 'punjab', 'haryana', 'uttar pradesh', 'rajasthan', 'himachal', 'uttarakhand', 'kashmir', 'chandigarh'),
+					'south' => array('kerala', 'tamil nadu', 'karnataka', 'andhra', 'telangana', 'puducherry'),
+					'east' => array('west bengal', 'odisha', 'bihar', 'jharkhand', 'assam', 'sikkim', 'meghalaya'),
+					'west' => array('maharashtra', 'gujarat', 'goa', 'daman', 'diu', 'dadra'),
+					'central' => array('madhya pradesh', 'chhattisgarh')
+				);
+				
+				$zone_a = 'pan-india';
+				$zone_b = 'pan-india-b'; // distinct fallback
+				
+				foreach ($zones as $zone => $states) {
+					foreach ($states as $s) {
+						if (strpos($state_a, $s) !== false) $zone_a = $zone;
+						if (strpos($state_b, $s) !== false) $zone_b = $zone;
+					}
+				}
+				
+				if ( $zone_a === $zone_b && $zone_a !== 'pan-india' ) {
+					$city_score = 12; // Same zone
+				} else {
+					$city_score = 5; // Pan India / Different zone
+				}
+			}
+		}
+	}
 
 	// Sum matching weight components
 	$total_score = round( $looking_score + $circles_score + $hobbies_score + $city_score );

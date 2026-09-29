@@ -1889,15 +1889,19 @@ function si50_render_admin_onboarding_page() {
                                 $score = si50_calculate_compatibility( $u->ID, $m->ID );
                             }
 							if ( $score >= 60 ) { // Only show matches 60% or higher
-								$matches[] = array( 'user' => $m, 'score' => $score );
+								$tier = function_exists('si50_get_location_tier') ? si50_get_location_tier($u->ID, $m->ID) : 1;
+								$matches[] = array( 'user' => $m, 'score' => $score, 'tier' => $tier );
 							}
 						}
 						
 						if ( empty($matches) ) continue;
 						
-						// Sort by score
+						// Sort by Location Tier FIRST, then by Score
 						usort($matches, function($a, $b) {
-							return $b['score'] - $a['score'];
+							if ( $a['tier'] !== $b['tier'] ) {
+								return $b['tier'] - $a['tier']; // Higher tier (4=city, 3=state, 2=zone, 1=pan-india) goes first
+							}
+							return $b['score'] - $a['score']; // Then by compatibility score
 						});
 				?>
 					<div style="border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; padding: 15px;">
@@ -1925,7 +1929,7 @@ function si50_render_admin_onboarding_page() {
 									?>
 									<tr>
 										<td><strong><?php echo esc_html($mu_name); ?></strong></td>
-										<td><?php echo esc_html($mu_age); ?>, <?php echo esc_html($mu_city); ?></td>
+										<td><?php echo esc_html($mu_age); ?>, <?php echo esc_html($mu_city); ?><br><span style="color:#666; font-size:11px;">📞 <?php echo esc_html($mu_phone); ?></span></td>
 										<td>
 											<span class="si50-badge" style="background: #e7f4e8; color: #1e7e34; border-color: #1e7e34;">
 												🍀 <?php echo intval($match['score']); ?>% Match
@@ -2159,8 +2163,11 @@ function si50_render_admin_onboarding_page() {
 															<a href="<?php echo esc_url( admin_url('?si50_download_card=1&user_id=' . $user->ID) ); ?>" target="_blank" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: #C5A059 !important; color: #fff !important; border-color: #1B3B2B !important;">
 																<?php esc_html_e( 'Download Card', 'secondinnings50' ); ?>
 															</a>
+															<a href="<?php echo esc_url( admin_url( 'user-edit.php?user_id=' . $user->ID ) ); ?>" target="_blank" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: #f0f0f1 !important; color: #2271b1 !important; border-color: #2271b1 !important; margin-bottom: 5px;">
+																✏️ <?php esc_html_e( 'Edit Profile', 'secondinnings50' ); ?>
+															</a>
 															<a href="<?php echo esc_url( admin_url( 'admin.php?page=si50-onboarding-dashboard&action=deactivate_member&user_id=' . $user->ID . '&_wpnonce=' . $nonce ) ); ?>" onclick="return confirm('Deactivate this profile? It will no longer appear in matchmaking.');" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: #c5221f !important; color: #fff !important; border-color: #333333 !important;">
-																<?php esc_html_e( 'Deactivate Profile', 'secondinnings50' ); ?>
+																<?php esc_html_e( 'Deactivate', 'secondinnings50' ); ?>
 															</a>
 														<?php endif; ?>
 														
