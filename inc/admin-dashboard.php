@@ -824,7 +824,13 @@ if ( isset( $_POST['si50_wa_womens_lounge_capacity'] ) ) {
 				}
 				wp_safe_redirect( admin_url( 'admin.php?page=si50-onboarding-dashboard&tab=interest_submissions&msg=resolved_interest' ) );
 				exit;
-			} elseif ( 'suspend_member' === $action ) {
+			
+			} elseif ( 'deactivate_member' === $action ) {
+				update_user_meta( $user_id, 'si50_vetting_status', 'deactivated' );
+				si50_log_activity( $user_id, 'deactivated', esc_html__( 'Member profile deactivated by administrator.', 'secondinnings50' ) );
+				wp_safe_redirect( admin_url( 'admin.php?page=si50-onboarding-dashboard&tab=applications&msg=suspended' ) );
+				exit;
+} elseif ( 'suspend_member' === $action ) {
 				update_user_meta( $user_id, 'si50_vetting_status', 'suspended' );
 				
 				$report_id = isset( $_GET['report_id'] ) ? intval( $_GET['report_id'] ) : 0;
@@ -1479,7 +1485,7 @@ function si50_render_admin_onboarding_page() {
 
 	// Active tab configuration
 	$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'invitations';
-	if ( ! in_array( $active_tab, array( 'invitations', 'applications', 'contact_inquiries', 'whatsapp_manager', 'safety_reports', 'interest_submissions' ), true ) ) {
+	if ( ! in_array( $active_tab, array( 'invitations', 'applications', 'contact_inquiries', 'whatsapp_manager', 'safety_reports', 'interest_submissions', 'matchmaking' ), true ) ) {
 		$active_tab = 'invitations';
 	}
 
@@ -1655,9 +1661,14 @@ function si50_render_admin_onboarding_page() {
 			<a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'safety_reports', 'start_date' => $start_date, 'end_date' => $end_date ) ) ); ?>" class="nav-tab <?php echo ( 'safety_reports' === $active_tab ) ? 'nav-tab-active' : ''; ?>">
 				⚠️ <?php esc_html_e( 'Safety & Reports', 'secondinnings50' ); ?>
 			</a>
+			
 			<a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'interest_submissions', 'start_date' => $start_date, 'end_date' => $end_date ) ) ); ?>" class="nav-tab <?php echo ( 'interest_submissions' === $active_tab ) ? 'nav-tab-active' : ''; ?>">
 				🤝 <?php esc_html_e( 'Interest Submissions', 'secondinnings50' ); ?>
 			</a>
+            <a href="<?php echo esc_url( add_query_arg( array( 'tab' => 'matchmaking', 'start_date' => $start_date, 'end_date' => $end_date ) ) ); ?>" class="nav-tab <?php echo ( 'matchmaking' === $active_tab ) ? 'nav-tab-active' : ''; ?>">
+				🔮 <?php esc_html_e( 'AI Matchmaking', 'secondinnings50' ); ?>
+			</a>
+
 		</h2>
 
 		<!-- Filter Bar Panel -->
@@ -1839,6 +1850,103 @@ function si50_render_admin_onboarding_page() {
 							</div>
 						<?php endif; ?>
 					</div>
+				
+				<?php elseif ( 'matchmaking' === $active_tab ) : ?>
+			
+			<div class="si50-card" style="margin-top: 20px;">
+				<h2 class="si50-card-title">🔮 <?php esc_html_e( 'AI Matchmaking Suggestions', 'secondinnings50' ); ?></h2>
+				<p style="color: #5f6368; font-size: 13px; margin-bottom: 20px;">
+					<?php esc_html_e( 'This section is strictly hidden from members. Here you can review algorithm-assisted highly compatible matches based on shared preferences, city, and interests.', 'secondinnings50' ); ?>
+				</p>
+				
+				<?php
+				// Fetch all approved members
+				$approved_users = get_users( array(
+					'meta_key' => 'si50_vetting_status',
+					'meta_value' => 'approved',
+					'role__not_in' => array( 'administrator' )
+				) );
+				
+				if ( empty( $approved_users ) ) {
+					echo '<p>' . esc_html__( 'No approved members available for matchmaking.', 'secondinnings50' ) . '</p>';
+				} else {
+					foreach ( $approved_users as $u ) :
+						$u_name = get_user_meta( $u->ID, 'si50_fullname', true );
+						if ( empty($u_name) ) $u_name = $u->display_name;
+						$u_age = get_user_meta( $u->ID, 'si50_age_bracket', true );
+						$u_city = get_user_meta( $u->ID, 'si50_city_state', true );
+						$u_gender = get_user_meta( $u->ID, 'si50_gender', true );
+						
+						// Find matches
+						$matches = array();
+						foreach ( $approved_users as $m ) {
+							if ( $m->ID === $u->ID ) continue;
+							$m_gender = get_user_meta( $m->ID, 'si50_gender', true );
+							if ( $m_gender === $u_gender ) continue; // Only suggest opposite gender matches for now (simplistic)
+							
+							$score = 65; // fallback
+                            if ( function_exists('si50_calculate_compatibility') ) {
+                                $score = si50_calculate_compatibility( $u->ID, $m->ID );
+                            }
+							if ( $score >= 60 ) { // Only show matches 60% or higher
+								$matches[] = array( 'user' => $m, 'score' => $score );
+							}
+						}
+						
+						if ( empty($matches) ) continue;
+						
+						// Sort by score
+						usort($matches, function($a, $b) {
+							return $b['score'] - $a['score'];
+						});
+				?>
+					<div style="border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; padding: 15px;">
+						<h3 style="margin-top:0; color: #1B3B2B; display: flex; align-items: center; justify-content: space-between;">
+							<span>👤 <?php echo esc_html($u_name); ?> (<?php echo esc_html($u_age); ?>, <?php echo esc_html($u_city); ?>)</span>
+						</h3>
+						<div class="si50-table-container">
+							<table class="si50-list-table">
+								<thead>
+									<tr>
+										<th><?php esc_html_e( 'Match', 'secondinnings50' ); ?></th>
+										<th><?php esc_html_e( 'Details', 'secondinnings50' ); ?></th>
+										<th><?php esc_html_e( 'Compatibility', 'secondinnings50' ); ?></th>
+										<th><?php esc_html_e( 'Action', 'secondinnings50' ); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php foreach( array_slice($matches, 0, 5) as $match ) : 
+										$mu = $match['user'];
+										$mu_name = get_user_meta( $mu->ID, 'si50_fullname', true );
+										if ( empty($mu_name) ) $mu_name = $mu->display_name;
+										$mu_age = get_user_meta( $mu->ID, 'si50_age_bracket', true );
+										$mu_city = get_user_meta( $mu->ID, 'si50_city_state', true );
+										$mu_phone = get_user_meta( $mu->ID, 'si50_phone', true );
+									?>
+									<tr>
+										<td><strong><?php echo esc_html($mu_name); ?></strong></td>
+										<td><?php echo esc_html($mu_age); ?>, <?php echo esc_html($mu_city); ?></td>
+										<td>
+											<span class="si50-badge" style="background: #e7f4e8; color: #1e7e34; border-color: #1e7e34;">
+												🍀 <?php echo intval($match['score']); ?>% Match
+											</span>
+										</td>
+										<td>
+											<a href="https://wa.me/<?php echo esc_attr( ltrim( $mu_phone, '+' ) ); ?>" target="_blank" class="si50-action-btn" style="background: #25D366; color: white; border-color: #1DA851;">
+												💬 <?php esc_html_e( 'Share via WhatsApp', 'secondinnings50' ); ?>
+											</a>
+										</td>
+									</tr>
+									<?php endforeach; ?>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				<?php 
+					endforeach; 
+				}
+				?>
+			</div>
 				
 				<?php elseif ( 'interest_submissions' === $active_tab ) : 
 					// Query interest submissions
@@ -2047,6 +2155,12 @@ function si50_render_admin_onboarding_page() {
 														<?php if ( 'approved' === $status ) : ?>
 															<a href="<?php echo esc_url( $badge_url ); ?>" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: <?php echo $is_badge_verified ? '#fce8e6' : '#e6f4ea'; ?> !important; color: <?php echo $is_badge_verified ? '#c5221f' : '#137333'; ?> !important; border-color: #333333 !important;">
 																<?php echo $is_badge_verified ? esc_html__( 'Remove Badge', 'secondinnings50' ) : esc_html__( 'Verify Badge', 'secondinnings50' ); ?>
+															</a>
+															<a href="<?php echo esc_url( admin_url('?si50_download_card=1&user_id=' . $user->ID) ); ?>" target="_blank" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: #C5A059 !important; color: #fff !important; border-color: #1B3B2B !important;">
+																<?php esc_html_e( 'Download Card', 'secondinnings50' ); ?>
+															</a>
+															<a href="<?php echo esc_url( admin_url( 'admin.php?page=si50-onboarding-dashboard&action=deactivate_member&user_id=' . $user->ID . '&_wpnonce=' . $nonce ) ); ?>" onclick="return confirm('Deactivate this profile? It will no longer appear in matchmaking.');" class="si50-action-btn" style="text-align: center; white-space: nowrap; background-color: #c5221f !important; color: #fff !important; border-color: #333333 !important;">
+																<?php esc_html_e( 'Deactivate Profile', 'secondinnings50' ); ?>
 															</a>
 														<?php endif; ?>
 														

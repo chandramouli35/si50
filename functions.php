@@ -999,3 +999,559 @@ function si50_remove_member_status_tag( $user_id, $tag ) {
         update_user_meta( $user_id, 'si50_member_status_tags', $tags );
     }
 }
+
+
+
+/**
+ * Generate Membership ID
+ */
+function si50_generate_membership_id( $user_id ) {
+    $existing = get_user_meta( $user_id, 'si50_membership_id', true );
+    if ( ! empty( $existing ) ) {
+        return $existing;
+    }
+    $gender = get_user_meta( $user_id, 'si50_gender', true );
+    $g_char = ( 'Female' === $gender || 'female' === strtolower($gender) ) ? 'F' : 'M';
+    $new_id = 'SI-' . $g_char . '-' . $user_id;
+    update_user_meta( $user_id, 'si50_membership_id', $new_id );
+    return $new_id;
+}
+add_action( 'user_register', 'si50_generate_membership_id' );
+add_action( 'profile_update', 'si50_generate_membership_id' );
+
+/**
+ * Handle Download Profile Card Action
+ */
+function si50_handle_download_profile_card() {
+    if ( isset( $_GET['si50_download_card'] ) && isset( $_GET['user_id'] ) && is_admin() && current_user_can('manage_options') ) {
+        $user_id = intval( $_GET['user_id'] );
+        $user = get_userdata( $user_id );
+        if ( ! $user ) wp_die('User not found.');
+        
+        $m_id = si50_generate_membership_id( $user_id );
+        $name = get_user_meta( $user_id, 'si50_fullname', true );
+        if ( empty($name) ) $name = $user->first_name;
+        if ( empty($name) ) $name = $user->display_name;
+        
+        $age = get_user_meta( $user_id, 'si50_age_bracket', true );
+        $city = get_user_meta( $user_id, 'si50_city_state', true );
+        $occupation = get_user_meta( $user_id, 'si50_occupation', true );
+        $focus = implode(', ', (array)get_user_meta( $user_id, 'si50_looking_for', true ));
+        $circles = implode(', ', (array)get_user_meta( $user_id, 'si50_circles_interest', true ));
+        
+        // Fix for hobbies and travel
+        $hobbies = implode(', ', (array)get_user_meta( $user_id, 'si50_hobbies_interests', true ));
+        $travel_dest = implode(', ', (array)get_user_meta( $user_id, 'si50_travel_destinations', true ));
+        $travel_styles = implode(', ', (array)get_user_meta( $user_id, 'si50_travel_styles', true ));
+        $travel = $travel_dest;
+        if ( !empty($travel_styles) ) $travel .= (empty($travel) ? '' : ' | ') . $travel_styles;
+        
+        $about = get_user_meta( $user_id, 'si50_introduction', true );
+        $reg_date = date('F j, Y', strtotime($user->user_registered));
+        
+        // Fix for photo
+        $photo_url = get_user_meta( $user_id, 'si50_verification_selfie_url', true );
+        
+        // Extended fields
+        $dob = get_user_meta( $user_id, 'si50_dob', true ) ?: 'Not provided';
+        $tob = get_user_meta( $user_id, 'si50_tob', true ) ?: 'Not provided';
+        $pob = get_user_meta( $user_id, 'si50_pob', true ) ?: 'Not provided';
+        $marital = get_user_meta( $user_id, 'si50_marital_status', true ) ?: 'Not provided';
+        $lifestyle = get_user_meta( $user_id, 'si50_lifestyle', true ) ?: 'Not provided';
+        
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Member Card - <?php echo esc_attr($name); ?></title>
+            <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Great+Vibes&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+            <style>
+                :root {
+                    --gold: #dfb15b;
+                    --dark-blue: #0b2545;
+                    --mid-blue: #134074;
+                    --light-blue: #8da9c4;
+                    --bg-blue: #eef4ed;
+                    --text-dark: #222;
+                    --text-light: #555;
+                }
+                body {
+                    font-family: 'Poppins', sans-serif;
+                    background: #d6e0f0;
+                    margin: 0;
+                    padding: 20px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                }
+                .card-container {
+                    width: 800px;
+                    background: white;
+                    position: relative;
+                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+                    overflow: hidden;
+                    box-sizing: border-box;
+                    padding: 3px;
+                    background: linear-gradient(135deg, var(--gold) 0%, #f9f9f9 50%, var(--gold) 100%);
+                    border-radius: 20px;
+                }
+                
+                /* Decorative Borders */
+                .inner-border {
+                    border: 2px solid transparent;
+                    border-radius: 17px;
+                    padding: 35px 35px 0 35px;
+                    position: relative;
+                    background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 Q50,0 50,50 T100,100" stroke="%238da9c4" stroke-width="0.5" fill="none" opacity="0.1"/></svg>'), linear-gradient(to bottom, #ffffff, #f4f7f6);
+                    z-index: 2;
+                }
+
+                /* Corner Leaves SVGs */
+                .corner-leaf { position: absolute; width: 140px; height: 140px; opacity: 0.8; z-index: 1; pointer-events: none; }
+                .tl-leaf { top: -20px; left: -20px; transform: rotate(0deg); }
+                .tr-leaf { top: -20px; right: -20px; transform: rotate(90deg); }
+                .bl-leaf { bottom: 40px; left: -20px; transform: rotate(-90deg); }
+                .br-leaf { bottom: 40px; right: -20px; transform: rotate(180deg); }
+                
+                .header-top {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 20px;
+                    position: relative;
+                    z-index: 5;
+                }
+                
+                .logo-area {
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    gap: 15px;
+                }
+                .logo-icon {
+                    width: 50px;
+                    height: 50px;
+                    background: var(--dark-blue);
+                    mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') no-repeat center / contain;
+                    -webkit-mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') no-repeat center / contain;
+                }
+                .brand-name {
+                    color: var(--mid-blue);
+                    font-size: 32px;
+                    font-weight: 700;
+                    margin: 0;
+                    line-height: 1;
+                    letter-spacing: -0.5px;
+                }
+                .brand-tag {
+                    color: var(--text-light);
+                    font-size: 11px;
+                    margin-top: 4px;
+                    letter-spacing: 0.5px;
+                }
+                
+                .verified-badge {
+                    background: linear-gradient(135deg, var(--mid-blue) 0%, var(--dark-blue) 100%);
+                    color: white;
+                    padding: 8px 18px;
+                    border-radius: 8px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    box-shadow: 0 4px 15px rgba(11,37,69,0.3);
+                    text-align: right;
+                    line-height: 1.4;
+                }
+                .verified-badge svg { width: 24px; height: 24px; fill: white; }
+                
+                .id-pill-container {
+                    text-align: center;
+                    margin: 0px 0 25px;
+                    position: relative;
+                    z-index: 5;
+                }
+                .id-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    border: 2px solid var(--light-blue);
+                    color: var(--mid-blue);
+                    font-size: 26px;
+                    font-weight: 700;
+                    padding: 8px 45px;
+                    border-radius: 40px;
+                    background: white;
+                    position: relative;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                }
+                .id-pill::before, .id-pill::after {
+                    content: '♥';
+                    color: var(--gold);
+                    font-size: 18px;
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                }
+                .id-pill::before { left: 15px; }
+                .id-pill::after { right: 15px; }
+                
+                .id-line {
+                    position: absolute;
+                    top: 50%;
+                    left: 10%;
+                    right: 10%;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+                    z-index: -1;
+                }
+                
+                .main-grid {
+                    display: flex;
+                    gap: 25px;
+                    margin-bottom: 20px;
+                    position: relative;
+                    z-index: 5;
+                }
+                
+                .left-col {
+                    flex: 1.25;
+                }
+                .right-col {
+                    flex: 0.75;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                
+                .section-header {
+                    background: linear-gradient(90deg, var(--dark-blue) 0%, var(--mid-blue) 100%);
+                    color: white;
+                    padding: 10px 18px;
+                    border-radius: 8px 8px 0 0;
+                    font-weight: 600;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                }
+                
+                .details-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    background: white;
+                    border-radius: 0 0 8px 8px;
+                    border: 1px solid #dce8f5;
+                    border-top: none;
+                }
+                .details-table tr {
+                    border-bottom: 1px dashed #dce8f5;
+                }
+                .details-table tr:last-child {
+                    border-bottom: none;
+                }
+                .details-table td {
+                    padding: 10px 15px;
+                    font-size: 12px;
+                    vertical-align: top;
+                }
+                .details-table .lbl {
+                    font-weight: 600;
+                    color: var(--mid-blue);
+                    width: 130px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .details-table .val {
+                    color: var(--text-dark);
+                }
+                
+                .photo-wrapper {
+                    border: 3px solid var(--gold);
+                    border-radius: 12px;
+                    padding: 6px;
+                    background: white;
+                    position: relative;
+                    width: 100%;
+                    box-sizing: border-box;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+                }
+                .photo {
+                    width: 100%;
+                    height: 270px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                }
+                
+                .fancy-text {
+                    font-family: 'Great Vibes', cursive;
+                    color: var(--mid-blue);
+                    font-size: 32px;
+                    text-align: center;
+                    margin-top: 25px;
+                    line-height: 1.1;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                }
+                
+                .two-col-sections {
+                    display: flex;
+                    gap: 20px;
+                    margin-bottom: 15px;
+                    position: relative;
+                    z-index: 5;
+                }
+                .half-section {
+                    flex: 1;
+                    background: white;
+                    border: 1px solid var(--mid-blue);
+                    border-radius: 8px;
+                    overflow: hidden;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                }
+                .half-section .section-header {
+                    border-radius: 0;
+                    box-shadow: none;
+                }
+                .half-section .content {
+                    padding: 15px;
+                    font-size: 13px;
+                    color: var(--text-dark);
+                    min-height: 40px;
+                }
+                
+                .full-section {
+                    border: 1px solid var(--mid-blue);
+                    border-radius: 8px;
+                    margin-bottom: 15px;
+                    overflow: hidden;
+                    background: white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    position: relative;
+                    z-index: 5;
+                }
+                .full-section .section-header {
+                    border-radius: 0;
+                    box-shadow: none;
+                }
+                .full-section .content {
+                    padding: 15px;
+                    font-size: 13px;
+                    color: var(--text-dark);
+                    line-height: 1.6;
+                }
+                
+                .trust-badges {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-top: 20px;
+                    padding: 20px 0;
+                    position: relative;
+                    z-index: 5;
+                }
+                .trust-badge {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 10px;
+                    color: var(--mid-blue);
+                    width: 23%;
+                }
+                .trust-icon {
+                    background: var(--mid-blue);
+                    color: white;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    flex-shrink: 0;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                }
+                .trust-text strong {
+                    display: block;
+                    font-size: 11px;
+                    color: var(--dark-blue);
+                }
+                
+                .footer-banner {
+                    background: linear-gradient(90deg, var(--dark-blue) 0%, var(--mid-blue) 100%);
+                    color: white;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 20px 35px;
+                    margin: 0 -35px;
+                    border-bottom-left-radius: 17px;
+                    border-bottom-right-radius: 17px;
+                    position: relative;
+                    z-index: 6;
+                }
+                .footer-lock {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+                .footer-text strong {
+                    font-size: 16px;
+                    display: block;
+                    letter-spacing: 0.5px;
+                }
+                .footer-text span {
+                    font-size: 11px;
+                    color: #d6e0f0;
+                }
+                
+                @media print {
+                    body { background: white; padding: 0; display: block; }
+                    .card-container { width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card-container">
+                <div class="inner-border">
+                    <!-- Leaf Graphics simulated with SVG -->
+                    <svg class="corner-leaf tl-leaf" viewBox="0 0 100 100"><path d="M0,0 Q60,10 80,40 T100,100 Q40,90 20,60 T0,0" fill="#8da9c4" opacity="0.3"/><path d="M10,10 Q50,20 60,40 T80,80 Q40,70 30,50 T10,10" fill="#134074" opacity="0.4"/></svg>
+                    <svg class="corner-leaf tr-leaf" viewBox="0 0 100 100"><path d="M0,0 Q60,10 80,40 T100,100 Q40,90 20,60 T0,0" fill="#8da9c4" opacity="0.3"/><path d="M10,10 Q50,20 60,40 T80,80 Q40,70 30,50 T10,10" fill="#134074" opacity="0.4"/></svg>
+                    <svg class="corner-leaf bl-leaf" viewBox="0 0 100 100"><path d="M0,0 Q60,10 80,40 T100,100 Q40,90 20,60 T0,0" fill="#8da9c4" opacity="0.3"/><path d="M10,10 Q50,20 60,40 T80,80 Q40,70 30,50 T10,10" fill="#134074" opacity="0.4"/></svg>
+                    <svg class="corner-leaf br-leaf" viewBox="0 0 100 100"><path d="M0,0 Q60,10 80,40 T100,100 Q40,90 20,60 T0,0" fill="#8da9c4" opacity="0.3"/><path d="M10,10 Q50,20 60,40 T80,80 Q40,70 30,50 T10,10" fill="#134074" opacity="0.4"/></svg>
+
+                    <div class="header-top">
+                        <div class="logo-area">
+                            <div class="logo-icon"></div>
+                            <div>
+                                <h1 class="brand-name">SecondInnings50.in</h1>
+                                <div class="brand-tag">Genuine Companionship. Meaningful Connections.</div>
+                            </div>
+                        </div>
+                        <div class="verified-badge">
+                            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                            <div>VERIFIED MEMBER<br>PROFILE PREVIEW</div>
+                        </div>
+                    </div>
+                    
+                    <div class="id-pill-container">
+                        <div class="id-line"></div>
+                        <div class="id-pill"><?php echo esc_html($m_id); ?></div>
+                        <div style="font-size: 10px; color: var(--gold); letter-spacing: 2px; margin-top: 10px; font-weight: 600;">NEW BEGINNINGS ♥ BRIGHTER TOMORROWS</div>
+                    </div>
+                    
+                    <div class="main-grid">
+                        <div class="left-col">
+                            <div class="section-header">
+                                👤 PROFILE DETAILS
+                            </div>
+                            <table class="details-table">
+                                <tr><td class="lbl">🪪 Name</td><td class="val">: <?php echo esc_html($name); ?></td></tr>
+                                <tr><td class="lbl">🎂 Age</td><td class="val">: <?php echo esc_html($age); ?></td></tr>
+                                <tr><td class="lbl">📅 Date Of Birth</td><td class="val">: <?php echo esc_html($dob); ?></td></tr>
+                                <tr><td class="lbl">⏰ Time Of Birth</td><td class="val">: <?php echo esc_html($tob); ?></td></tr>
+                                <tr><td class="lbl">📍 Place Of Birth</td><td class="val">: <?php echo esc_html($pob); ?></td></tr>
+                                <tr><td class="lbl">❤️ Marital Status</td><td class="val">: <?php echo esc_html($marital); ?></td></tr>
+                                <tr><td class="lbl">💼 Occupation</td><td class="val">: <?php echo esc_html($occupation); ?></td></tr>
+                                <tr><td class="lbl">🎯 Seeking Focus</td><td class="val">: <?php echo esc_html($focus); ?></td></tr>
+                                <tr><td class="lbl">⭐ Lifestyle</td><td class="val">: <?php echo esc_html($lifestyle); ?></td></tr>
+                                <tr><td class="lbl">🏙️ Location Pref.</td><td class="val">: <?php echo esc_html($city); ?></td></tr>
+                                <tr><td class="lbl">🗓️ Registered On</td><td class="val">: <?php echo esc_html($reg_date); ?></td></tr>
+                                <tr><td class="lbl">✔️ Vetting Status</td><td class="val">: Verified</td></tr>
+                            </table>
+                        </div>
+                        
+                        <div class="right-col">
+                            <div class="photo-wrapper">
+                                <?php if ($photo_url) : ?>
+                                    <img src="<?php echo esc_url($photo_url); ?>" class="photo" alt="Member Photo">
+                                <?php else: ?>
+                                    <div class="photo" style="background:#f4f7f6; display:flex; align-items:center; justify-content:center; color:#8da9c4; font-weight:600; flex-direction:column; gap:10px;">
+                                        <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                        No Photo
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="fancy-text">
+                                New<br>Connections<br>Brighter<br>Tomorrows
+                            </div>
+                            <div style="font-family:'Playfair Display', serif; font-size:10px; text-transform:uppercase; text-align:center; color:var(--gold); margin-top:15px; letter-spacing:1px; line-height:1.4;">
+                                Same<br>Values<br>Brighter<br>Days
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="two-col-sections">
+                        <div class="half-section">
+                            <div class="section-header">✈️ TRAVEL PREFERENCE</div>
+                            <div class="content"><?php echo esc_html($travel); ?></div>
+                        </div>
+                        <div class="half-section">
+                            <div class="section-header">⭐ INTERESTS & HOBBIES</div>
+                            <div class="content"><?php echo esc_html($hobbies); ?></div>
+                        </div>
+                    </div>
+                    
+                    <div class="full-section">
+                        <div class="section-header">👥 CIRCLES INTEREST</div>
+                        <div class="content"><?php echo esc_html($circles); ?></div>
+                    </div>
+                    
+                    <div class="full-section">
+                        <div class="section-header">🎯 LOOKING FOR</div>
+                        <div class="content"><?php echo esc_html($focus); ?></div>
+                    </div>
+                    
+                    <div class="full-section">
+                        <div class="section-header">👤 ABOUT ME</div>
+                        <div class="content"><?php echo nl2br(esc_html($about)); ?></div>
+                    </div>
+                    
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <div class="trust-icon">✔️</div>
+                            <div class="trust-text"><strong>Verified Member</strong> Background verified by SecondInnings50.in team</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div class="trust-icon">👥</div>
+                            <div class="trust-text"><strong>Carefully Matched</strong> Matched based on shared values and preferences</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div class="trust-icon">🔒</div>
+                            <div class="trust-text"><strong>Privacy Protected</strong> Contact details are private and never shared</div>
+                        </div>
+                        <div class="trust-badge">
+                            <div class="trust-icon">💙</div>
+                            <div class="trust-text"><strong>Genuine Connections</strong> For meaningful companionship only</div>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-banner">
+                        <div class="footer-lock">
+                            <div style="font-size: 36px; color: var(--gold);">🔒</div>
+                            <div class="footer-text">
+                                <strong>CONTACT DETAILS KEPT PRIVATE</strong>
+                                <span>Will be shared only after mutual interest and consent from both members.</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 20px; font-weight: bold; letter-spacing: -0.5px;">SecondInnings50.in ♥</div>
+                            <div style="font-size: 11px; color: #8da9c4; letter-spacing: 0.5px; margin-top:3px;">A Community for Meaningful Companionship</div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            <script>
+                // Delay print just slightly so fonts load
+                setTimeout(() => { window.print(); }, 800);
+            </script>
+        </body>
+        </html>
+        <?php
+        exit;
+    }
+}
+add_action( 'init', 'si50_handle_download_profile_card' );
