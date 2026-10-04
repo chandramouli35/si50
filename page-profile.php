@@ -412,7 +412,7 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
           <span class="section-tag"><?php esc_html_e( 'Member Dashboard', 'secondinnings50' ); ?></span>
           <h1 class="section-title"><?php esc_html_e( 'Account Settings & Companionship Preferences', 'secondinnings50' ); ?></h1>
           <p class="section-subtitle">
-            <?php esc_html_e( 'Manage your personal identity, contact coordinates, companion matches, and interest circle choices.', 'secondinnings50' ); ?>
+            <?php esc_html_e( 'Manage your personal identity, contact details, and companionship preferences. Matching is handled privately by our team.', 'secondinnings50' ); ?>
           </p>
         </div>
 
@@ -422,7 +422,7 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 					⏸️ <?php esc_html_e( 'Profile Paused (Compatibility Period)', 'secondinnings50' ); ?>
 				</h3>
 				<p style="margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--color-charcoal);">
-					<?php esc_html_e( 'Your profile is currently paused from the directory while you explore companionship with your match. Take this time to communicate and understand each other better.', 'secondinnings50' ); ?>
+					<?php esc_html_e( 'Your profile is currently paused from matching while you explore companionship with your introduction. Take this time to communicate and understand each other better.', 'secondinnings50' ); ?>
 				</p>
 			</div>
         <?php endif; ?>
@@ -431,7 +431,7 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
         <?php if ( 'approved' === $vetting_status ) : ?>
 			<div style="background-color: #e7f4e8; border: 1.5px solid #1e7e34; padding: 16px 20px; border-radius: var(--radius-md); margin-bottom: 24px; color: #1e7e34;">
 				<p style="margin: 0; font-weight: 700; font-size: var(--fs-md);">
-					✓ <?php esc_html_e( 'Profile Verified: Your account is active in the directory and you can send and receive connect requests.', 'secondinnings50' ); ?>
+					✓ <?php esc_html_e( 'Profile Verified: Your account is active. Suitable companionship introductions will be shared with you personally by our team.', 'secondinnings50' ); ?>
 				</p>
 			</div>
         <?php elseif ( 'rejected' === $vetting_status ) : ?>
@@ -483,12 +483,6 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 							</a>
 						</li>
 						<li>
-							<a href="<?php echo esc_url( add_query_arg( 'tab', 'connections' ) ); ?>" class="profile-tab-link" style="display: block; padding: 12px 16px; border: 1.5px solid #333333; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: var(--fs-xs); <?php echo ('connections' === $active_tab) ? 'background-color: var(--color-forest) !important; color: #FFFFFF !important;' : 'background-color: #FFFFFF !important; color: #333333 !important;'; ?>">
-								👥 <?php esc_html_e( 'My Connections', 'secondinnings50' ); ?>
-								<span style="background-color: var(--color-terracotta); color: #FFFFFF; font-size: 0.7rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-left: 4px;"><?php echo intval( $connections_count ); ?></span>
-							</a>
-						</li>
-						<li>
 							<a href="<?php echo esc_url( add_query_arg( 'tab', 'events' ) ); ?>" class="profile-tab-link" style="display: block; padding: 12px 16px; border: 1.5px solid #333333; border-radius: var(--radius-sm); font-weight: 700; text-decoration: none; font-size: var(--fs-xs); <?php echo ('events' === $active_tab) ? 'background-color: var(--color-forest) !important; color: #FFFFFF !important;' : 'background-color: #FFFFFF !important; color: #333333 !important;'; ?>">
 								📅 <?php esc_html_e( 'Community Meetups', 'secondinnings50' ); ?>
 							</a>
@@ -530,7 +524,7 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 								if ( $completion_pct < 100 ) {
 									esc_html_e( 'Complete all details (Bio, Preferences, Interests, Selfie photo) to unlock 100% status.', 'secondinnings50' );
 								} else {
-									esc_html_e( 'Excellent! Your profile is complete and optimized for compatibility matching.', 'secondinnings50' );
+									esc_html_e( 'Excellent! Your profile is complete. Our team will use these details for private, curated companionship introductions.', 'secondinnings50' );
 								}
 								?>
 							</p>
@@ -606,189 +600,17 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 				<!-- Razorpay Payment Upgrade Notice Gating (Point 6 Pipeline) -->
 				<!-- Payment section removed as per direct PayU trigger flow -->
 
-				<?php 
-				// Suggested Companions Match Carousel (Point 12)
-				$blocked_ids = function_exists( 'si50_get_blocked_user_ids' ) ? si50_get_blocked_user_ids( $user_id ) : array();
-				$exclude_ids = array_merge( array( $user_id ), $blocked_ids );
-
-				$match_args = array(
-					'role__not_in' => array( 'administrator' ),
-					'exclude'      => $exclude_ids,
-					'meta_query'   => array(
-						'relation' => 'AND',
-						array(
-							'key'     => 'si50_vetting_status',
-							'value'   => 'approved',
-							'compare' => '='
-						),
-						array(
-							'relation' => 'OR',
-							array(
-								'key'     => 'si50_profile_visibility',
-								'value'   => 'private',
-								'compare' => '!='
-							),
-							array(
-								'key'     => 'si50_profile_visibility',
-								'compare' => 'NOT EXISTS'
-							)
-						)
-					)
-				);
-				$potential_matches = get_users( $match_args );
-
-				$compatible_suggestions = array();
-				foreach ( $potential_matches as $pm ) {
-					$score = si50_calculate_compatibility( $user_id, $pm->ID );
-					if ( $score > 60 ) {
-						$compatible_suggestions[] = array(
-							'user'  => $pm,
-							'score' => $score
-						);
-					}
-				}
-
-				// Sort suggestions by score descending
-				usort( $compatible_suggestions, function( $a, $b ) {
-					return $b['score'] - $a['score'];
-				} );
-				?>
-				<div class="si50-carousel-section">
+				<!-- Match suggestions removed: Admin-only curated introductions -->
+				<div class="card" style="border: 2px solid #1B3B2B !important; background-color: #FFFFFF !important; padding: 20px; border-radius: var(--radius-md); box-sizing: border-box;">
 					<h3 style="margin: 0 0 8px 0; font-family: var(--font-serif); font-size: var(--fs-md); color: var(--color-forest); font-weight: 700; display: flex; align-items: center; gap: 8px;">
-						<span>🍀</span>
-						<span><?php esc_html_e( 'Compatible Member Matches (> 60% Score)', 'secondinnings50' ); ?></span>
+						<span>🔒</span>
+						<span><?php esc_html_e( 'Private Team-Curated Matching', 'secondinnings50' ); ?></span>
 					</h3>
-					<p style="margin: 0 0 16px 0; font-size: var(--fs-xs); color: var(--color-charcoal-muted); line-height: 1.4;">
-						<?php esc_html_e( 'Connect with mature members sharing similar companion focus, interests, and lifestyle preferences.', 'secondinnings50' ); ?>
+					<p style="margin: 0; font-size: var(--fs-sm); color: var(--color-charcoal-muted); line-height: 1.6;">
+						<?php esc_html_e( 'Other member profiles and algorithm match suggestions are not shown here. The SecondInnings team reviews profiles privately and shares suitable companionship introductions with you personally when ready. Your privacy — and theirs — stays protected.', 'secondinnings50' ); ?>
 					</p>
-
-					<?php if ( empty( $compatible_suggestions ) ) : ?>
-						<div class="card text-center" style="padding: 30px 15px; border: 1.5px dashed var(--color-border) !important; background-color: #FFFFFF !important; border-radius: var(--radius-md);">
-							<span style="font-size: 2rem; display: block; margin-bottom: 8px;">🌾</span>
-							<p style="color: var(--color-charcoal-muted); font-size: var(--fs-xs); margin: 0;">
-								<?php esc_html_e( 'No matches above 60% found yet. Complete your preferences and interest circles to find compatible peers.', 'secondinnings50' ); ?>
-							</p>
-						</div>
-					<?php else : ?>
-						<div class="si50-carousel-container">
-							<?php foreach ( $compatible_suggestions as $suggestion ) : 
-								$member_user = $suggestion['user'];
-								$member_id   = $member_user->ID;
-								$score       = $suggestion['score'];
-								$m_name      = esc_html( $member_user->display_name );
-								$m_gender    = get_user_meta( $member_id, 'si50_gender', true );
-								$m_age       = get_user_meta( $member_id, 'si50_age_bracket', true );
-								$m_city      = get_user_meta( $member_id, 'si50_city_state', true );
-								$m_occupation= get_user_meta( $member_id, 'si50_occupation', true );
-								$m_intro     = get_user_meta( $member_id, 'si50_introduction', true );
-								$m_looking_for = (array) get_user_meta( $member_id, 'si50_looking_for', true );
-								$m_connection_intent = get_user_meta( $member_id, 'si50_connection_intent', true );
-								$m_voice_intro = get_user_meta( $member_id, 'si50_voice_intro', true );
-								$m_phone     = get_user_meta( $member_id, 'si50_phone', true );
-
-								// Check connections handshake
-								$connection_req = si50_get_connection_request( $user_id, $member_id );
-								$connection_status = $connection_req ? $connection_req->status : false;
-								$is_connected   = ( 'approved' === $connection_status );
-
-								// Evaluate visibility controls
-								$m_visibility = get_user_meta( $member_id, 'si50_profile_visibility', true );
-								if ( empty( $m_visibility ) ) {
-									$m_visibility = 'public';
-								}
-								$hide_details = ( 'connections' === $m_visibility && ! $is_connected );
-								?>
-								<div class="card si50-member-card si50-carousel-item" style="background-color: #FFFFFF !important; border: 1.5px solid var(--color-border) !important; border-radius: var(--radius-lg); padding: var(--spacing-sm); display: flex; flex-direction: column; justify-content: space-between; transition: border-color 0.2s ease; position: relative;">
-									
-									<div>
-										<!-- Match score and tags -->
-										<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
-											<span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-terracotta); background-color: var(--color-gold-light); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--color-gold); white-space: nowrap;">
-												🎂 <?php echo esc_html( $m_age ) . ' / ' . esc_html( $m_gender ); ?>
-											</span>
-											<span style="font-size: 11px; font-weight: 700; color: #1e7e34; background-color: #e7f4e8; padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid #1e7e34; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
-												🍀 <?php echo esc_html( $score ); ?>% Match
-											</span>
-										</div>
-
-										<h4 style="font-family: var(--font-serif); font-size: var(--fs-sm); font-weight: 800; color: var(--color-forest); margin: 0 0 2px 0; display: flex; align-items: center; gap: 6px;">
-											<?php echo esc_html( $m_name ); ?>
-											<?php 
-											$is_badge_verified = get_user_meta( $member_id, 'si50_verified_badge', true );
-											if ( $is_badge_verified ) :
-												?>
-												<span class="si50-emerald-badge" title="<?php esc_attr_e( 'SecondInnings50 Verified Member Identity Badge', 'secondinnings50' ); ?>" style="display: inline-flex; align-items: center; color: #10b981; vertical-align: middle;">
-													<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="display: inline-block; vertical-align: middle; color: #10B981; flex-shrink: 0;" aria-hidden="true">
-														<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-													</svg>
-												</span>
-											<?php endif; ?>
-										</h4>
-										<p style="font-size: 11px; color: var(--color-charcoal-muted); font-weight: 600; font-style: italic; margin-bottom: 8px;">
-											💼 <?php echo esc_html( $m_occupation ); ?>
-										</p>
-										<p style="font-size: 11px; color: var(--color-charcoal-muted); font-weight: 600; margin-bottom: 8px;">
-											📍 <?php echo esc_html( $m_city ); ?>
-										</p>
-
-										<?php if ( $hide_details ) : ?>
-											<div style="background-color: #fdfbf7; border: 1.5px dashed var(--color-gold); border-radius: var(--radius-sm); padding: 12px; margin: 10px 0; text-align: center; box-sizing: border-box;">
-												<span style="font-size: 1.25rem; display: block; margin-bottom: 4px;">🔒</span>
-												<strong style="color: var(--color-forest); font-size: 11px; display: block; margin-bottom: 4px; font-weight: 700;"><?php esc_html_e( 'Profile Locked', 'secondinnings50' ); ?></strong>
-												<p style="font-size: 11px; line-height: 1.3; color: var(--color-charcoal-muted); margin: 0;">
-													<?php printf( esc_html__( '%s has restricted details to approved connections only.', 'secondinnings50' ), $m_name ); ?>
-												</p>
-											</div>
-										<?php else : ?>
-											<?php if ( ! empty( $m_voice_intro ) ) : ?>
-												<div style="margin-bottom: 12px; padding: 10px; background-color: var(--bg-warm); border-radius: var(--radius-sm); border: 1px solid var(--color-gold);">
-													<span style="font-size: var(--fs-xs); font-weight: 700; color: var(--color-forest); display: block; margin-bottom: 6px;">🎙️ <?php esc_html_e( 'Voice Introduction', 'secondinnings50' ); ?></span>
-													<audio controls style="width: 100%; height: 32px;">
-														<source src="<?php echo esc_url( $m_voice_intro ); ?>" type="audio/mpeg">
-														<?php esc_html_e( 'Your browser does not support the audio element.', 'secondinnings50' ); ?>
-													</audio>
-												</div>
-											<?php endif; ?>
-											<?php if ( ! empty( $m_intro ) ) : ?>
-												<p style="font-size: var(--fs-xs); line-height: 1.4; color: var(--color-charcoal); margin-bottom: 12px; background-color: var(--bg-warm); padding: 8px; border-radius: var(--radius-sm); border-left: 2.5px solid var(--color-forest);">
-													<?php echo nl2br( esc_html( wp_trim_words( $m_intro, 15, '...' ) ) ); ?>
-												</p>
-											<?php endif; ?>
-											<?php if ( ! empty( $m_connection_intent ) ) : ?>
-												<p style="font-size: var(--fs-xs); line-height: 1.4; color: var(--color-charcoal-muted); margin-bottom: 12px;">
-													<strong><?php esc_html_e( 'Looking for:', 'secondinnings50' ); ?></strong> <?php echo esc_html( wp_trim_words( $m_connection_intent, 15, '...' ) ); ?>
-												</p>
-											<?php endif; ?>
-										<?php endif; ?>
-									</div>
-
-									<div style="border-top: 1px solid var(--color-border); padding-top: 8px; margin-top: 8px; box-sizing: border-box;">
-										<?php if ( $is_connected ) : 
-											$clean_phone = preg_replace( '/[^0-9]/', '', $m_phone );
-											if ( 10 === strlen( $clean_phone ) ) {
-												$clean_phone = '91' . $clean_phone;
-											}
-											$wa_link = 'https://wa.me/' . $clean_phone;
-											?>
-											<a href="<?php echo esc_url( $wa_link ); ?>" target="_blank" rel="noopener noreferrer" class="btn btn-block" style="width: 100%; font-weight: 700; background-color: #25D366 !important; color: #FFFFFF !important; padding: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--radius-sm); border: none; text-decoration: none; font-size: var(--fs-xs); box-sizing: border-box; height: 38px;">
-												<svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="margin-top: 1px;"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.666.988 3.31 1.493 5.405 1.494 5.276 0 9.57-4.287 9.573-9.564.001-2.556-1.002-4.959-2.816-6.78C16.924 2.5 14.55 1.5 12.008 1.5c-5.282 0-9.58 4.29-9.583 9.566-.001 2.01.522 3.823 1.517 5.485L2.94 20.897l6.707-1.743zM16.595 13.7c-.253-.127-1.5-.74-1.73-.824-.231-.084-.399-.127-.567.127-.168.252-.65.824-.796.993-.147.168-.294.19-.547.063-.253-.127-1.07-.394-2.04-1.259-.755-.674-1.266-1.506-1.414-1.759-.148-.252-.016-.39.11-.516.114-.112.253-.295.38-.442.127-.147.169-.253.253-.422.084-.168.042-.316-.021-.442-.063-.127-.567-1.36-.777-1.865-.205-.496-.41-.427-.567-.427-.147-.003-.315-.003-.483-.003-.168 0-.441.063-.672.316-.231.253-.882.863-.882 2.106 0 1.242.903 2.443 1.029 2.612.126.168 1.776 2.712 4.302 3.802.6.26 1.07.414 1.434.529.603.192 1.152.165 1.587.1.485-.072 1.5-.612 1.712-1.206.21-.595.21-1.106.147-1.206-.063-.1-.231-.143-.483-.27z"/></svg>
-												<span><?php esc_html_e( 'Chat on WhatsApp', 'secondinnings50' ); ?></span>
-											</a>
-										<?php elseif ( 'pending' === $connection_status ) : ?>
-											<button class="btn btn-block" disabled style="width: 100%; cursor: not-allowed; font-weight: 700; border: 1.5px solid var(--color-gold) !important; background-color: var(--color-gold-light) !important; color: var(--color-forest-dark) !important; padding: 8px; font-size: var(--fs-xs); height: 38px;">
-												⏱ <?php esc_html_e( 'Connection Pending', 'secondinnings50' ); ?>
-											</button>
-										<?php else : ?>
-											<button class="btn btn-primary btn-block si50-btn-connect" data-receiver-id="<?php echo esc_attr( $member_id ); ?>" style="width: 100%; padding: 8px; font-weight: 700; font-size: var(--fs-xs); height: 38px;">
-												🤝 <?php esc_html_e( 'Send Connect Request', 'secondinnings50' ); ?>
-											</button>
-										<?php endif; ?>
-									</div>
-								</div>
-							<?php endforeach; ?>
-						</div>
-					<?php endif; ?>
 				</div>
+
 				<?php endif; ?>
 
 				<?php if ( 'info' === $active_tab ) : ?>
@@ -837,15 +659,8 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 									</div>
 
 									<div class="form-group">
-										<label for="profile-age" class="form-label"><?php esc_html_e( 'Age Bracket', 'secondinnings50' ); ?> <span class="required">*</span></label>
-										<select id="profile-age" name="age_bracket" class="form-control select-control" required aria-required="true">
-											<option value="" disabled><?php esc_html_e( 'Select your age range', 'secondinnings50' ); ?></option>
-											<option value="40-45" <?php selected( $m_age, '40-45' ); ?>><?php esc_html_e( '40 to 45 Years', 'secondinnings50' ); ?></option>
-											<option value="46-50" <?php selected( $m_age, '46-50' ); ?>><?php esc_html_e( '46 to 50 Years', 'secondinnings50' ); ?></option>
-											<option value="51-55" <?php selected( $m_age, '51-55' ); ?>><?php esc_html_e( '51 to 55 Years', 'secondinnings50' ); ?></option>
-											<option value="56-60" <?php selected( $m_age, '56-60' ); ?>><?php esc_html_e( '56 to 60 Years', 'secondinnings50' ); ?></option>
-											<option value="60+" <?php selected( $m_age, '60+' ); ?>><?php esc_html_e( '60 Years & Above', 'secondinnings50' ); ?></option>
-										</select>
+										<label for="profile-age" class="form-label"><?php esc_html_e( 'Age', 'secondinnings50' ); ?> <span class="required">*</span></label>
+										<input type="text" inputmode="numeric" pattern="\d*" id="profile-age" name="age" class="form-control" placeholder="<?php esc_attr_e( 'e.g. 53', 'secondinnings50' ); ?>" required aria-required="true" value="<?php echo esc_attr( $m_age ); ?>">
 										<span class="error-msg" id="profile-age-error" aria-live="polite"></span>
 									</div>
 								</div>
@@ -899,25 +714,14 @@ $connections_count = 0; // Keeping variable just in case used elsewhere, but pee
 								</div>
 
 								<div class="form-row-2col" style="margin-top: 15px;">
-									<div class="form-group">
-										<label for="profile-visibility" class="form-label"><?php esc_html_e( 'Profile Visibility Privacy Setting', 'secondinnings50' ); ?> <span class="required">*</span></label>
-										<?php 
-										$m_visibility = get_user_meta( $user_id, 'si50_profile_visibility', true );
-										if ( empty( $m_visibility ) ) {
-											$m_visibility = 'public';
-										}
-										?>
-										<select id="profile-visibility" name="profile_visibility" class="form-control select-control" required aria-required="true" style="border: 1.5px solid #333333 !important; background-color: #FFFFFF !important;">
-											<option value="public" <?php selected( $m_visibility, 'public' ); ?>><?php esc_html_e( 'Public: Visible to all verified members', 'secondinnings50' ); ?></option>
-											<option value="connections" <?php selected( $m_visibility, 'connections' ); ?>><?php esc_html_e( 'Connections Only: Only approved connections view full details', 'secondinnings50' ); ?></option>
-											<option value="private" <?php selected( $m_visibility, 'private' ); ?>><?php esc_html_e( 'Private: Completely hidden from directory searches', 'secondinnings50' ); ?></option>
-										</select>
-										<span class="error-msg" id="profile-visibility-error" aria-live="polite"></span>
-									</div>
-									<div class="form-group" style="display: flex; align-items: center; padding-top: 25px;">
-										<span style="font-size: var(--fs-xs); color: var(--color-charcoal-muted); line-height: 1.4;">
-											<?php esc_html_e( 'Manage who has access to view your detailed profile card, biography description, and companion preferences.', 'secondinnings50' ); ?>
-										</span>
+									<div class="form-group-full">
+										<label class="form-label"><?php esc_html_e( 'Profile Privacy', 'secondinnings50' ); ?></label>
+										<input type="hidden" name="profile_visibility" value="private" />
+										<div style="border: 1.5px solid #1B3B2B; background: #f4f8f5; border-radius: var(--radius-sm); padding: 12px 14px;">
+											<p style="margin: 0; font-size: var(--fs-sm); color: var(--color-forest); font-weight: 700; line-height: 1.5;">
+												🔒 <?php esc_html_e( 'Your profile is private. Other members cannot browse your name or details on the website. Only the SecondInnings team can review profiles for curated companionship introductions.', 'secondinnings50' ); ?>
+											</p>
+										</div>
 									</div>
 								</div>
 

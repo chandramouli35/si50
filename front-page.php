@@ -423,7 +423,7 @@ get_header();
 
           <div class="hero-actions-group">
             <?php if ( is_user_logged_in() ) : ?>
-                <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Go to Directory', 'secondinnings50' ); ?></a>
+                <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Apply to Join', 'secondinnings50' ); ?></a>
             <?php else : ?>
                 <a href="<?php echo esc_url( home_url( '/join/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Join the Community', 'secondinnings50' ); ?></a>
             <?php endif; ?>
@@ -572,7 +572,7 @@ get_header();
           </div>
           <div class="companion-cta-wrapper">
             <?php if ( is_user_logged_in() ) : ?>
-                <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Go to Directory', 'secondinnings50' ); ?></a>
+                <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Apply to Join', 'secondinnings50' ); ?></a>
             <?php endif; ?>
           </div>
         </div>
@@ -691,7 +691,7 @@ get_header();
             </p>
             <div class="companion-cta-wrapper">
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Join a Circle', 'secondinnings50' ); ?></a>
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="btn btn-primary"><?php esc_html_e( 'Join a Circle', 'secondinnings50' ); ?></a>
               <?php endif; ?>
             </div>
           </div>
@@ -733,7 +733,7 @@ get_header();
               <h3><?php esc_html_e( 'Mumbai Chai Meetups', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'Coordinate pleasant weekend meetups at Carter Road, shared walks in local parks, and lively offline discussions over hot cutting chai.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>
@@ -751,7 +751,7 @@ get_header();
               <h3><?php esc_html_e( 'Delhi-NCR Socials', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'Serene morning meetups at Lodhi Gardens, shared visits to heritage monuments, and engaging virtual interest chats on chilly winter evenings.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>
@@ -769,7 +769,7 @@ get_header();
               <h3><?php esc_html_e( 'Bangalore Activity Club', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'Interact with local peers for pleasant morning strolls in Cubbon Park, exchange gardening tips, and enjoy freshly brewed filter coffee chats.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>
@@ -787,7 +787,7 @@ get_header();
               <h3><?php esc_html_e( 'Pune Senior Socials', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'Meetups for local cultural talks, weekend strolls, sharing retro Hindi film lyrics, and building deep, face-to-face friendships.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>
@@ -805,7 +805,7 @@ get_header();
               <h3><?php esc_html_e( 'Literature & Ghazal Circle', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'Share evergreen ghazals, read books together, discuss timeless literature, and participate in friendly virtual reading meetups.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>
@@ -823,7 +823,7 @@ get_header();
               <h3><?php esc_html_e( 'Hobby & Healthy Living', 'secondinnings50' ); ?></h3>
               <p><?php esc_html_e( 'A warm space to share gardening updates, cooking recipes, yoga habits, and smartphone photography tricks with active seniors.', 'secondinnings50' ); ?></p>
               <?php if ( is_user_logged_in() ) : ?>
-                  <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="dest-link">
+                  <a href="<?php echo esc_url( home_url( '/join-application/' ) ); ?>" class="dest-link">
                     <?php esc_html_e( 'Join Community Circle', 'secondinnings50' ); ?>
                     <span>→</span>
                   </a>

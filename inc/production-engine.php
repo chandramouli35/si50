@@ -1084,7 +1084,7 @@ function si50_email_trigger_vetting_approved( $user_id ) {
 		<div style="padding: 28px; background-color: #ffffff;">
 			<p>Dear ' . esc_html( $name ) . ',</p>
 			<p>We are absolutely delighted to inform you that your onboarding application has been manually reviewed and fully approved by our onboarding hosts.</p>
-			<p>Your member directory profile is now active! You can now access all companion matches, send connection handshakes, and explore member networks.</p>
+			<p>Your membership is now active. For your privacy, other member profiles are <strong>not</strong> open for browsing on the website. Our team reviews profiles privately and will share suitable companionship introductions with you personally when ready.</p>
 			
 			<div style="background-color: #f4f8f5; border-left: 4px solid #1B3B2B; padding: 16px; margin: 20px 0; border-radius: 4px;">
 				<h4 style="margin: 0 0 8px 0; color: #1B3B2B;">💬 Join Your Local WhatsApp Circle</h4>
@@ -1093,7 +1093,7 @@ function si50_email_trigger_vetting_approved( $user_id ) {
 			</div>
 			
 			<div style="text-align: center; margin: 30px 0;">
-				<a href="' . esc_url( home_url( '/directory/' ) ) . '" style="display: inline-block; background-color: #C05C3E; color: #ffffff; padding: 12px 28px; border-radius: 4px; font-weight: bold; text-decoration: none; font-size: 14px; box-shadow: 0 4px 6px rgba(192, 92, 62, 0.15);">Explore Member Directory</a>
+				<a href="' . esc_url( home_url( '/profile/' ) ) . '" style="display: inline-block; background-color: #C05C3E; color: #ffffff; padding: 12px 28px; border-radius: 4px; font-weight: bold; text-decoration: none; font-size: 14px; box-shadow: 0 4px 6px rgba(192, 92, 62, 0.15);">Open My Profile</a>
 			</div>
 			
 			<p style="font-size: 13px; color: #666666;">If you have any questions or require support navigating the platform, please reply directly to this email or drop us a WhatsApp message.</p>

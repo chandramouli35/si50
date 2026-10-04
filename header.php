@@ -62,15 +62,6 @@
         ?>
         <?php if ( is_user_logged_in() ) : ?>
             <?php
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'si50_connect_requests';
-            $bell_count = 0;
-            if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
-                $bell_count = $wpdb->get_var( $wpdb->prepare(
-                    "SELECT COUNT(*) FROM $table_name WHERE receiver_id = %d AND status = 'pending'",
-                    get_current_user_id()
-                ) );
-            }
             $user_id = get_current_user_id();
             $userdata = get_userdata( $user_id );
             $m_name = get_user_meta( $user_id, 'si50_fullname', true );
@@ -78,14 +69,6 @@
                 $m_name = $userdata ? $userdata->display_name : '';
             }
             ?>
-            <a href="<?php echo esc_url( home_url( '/notifications/' ) ); ?>" class="bell-nav-link" aria-label="<?php esc_attr_e( 'Notifications', 'secondinnings50' ); ?>" style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #333333; background: #FFFFFF; color: #333333; margin-right: 12px; cursor: pointer; text-decoration: none; vertical-align: middle;">
-                <svg width="22" height="22" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" style="display: block;">
-                    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-                </svg>
-                <?php if ( $bell_count > 0 ) : ?>
-                    <span class="bell-badge" style="position: absolute; top: -5px; right: -5px; background: #dc3545; color: #FFFFFF; font-size: 0.75rem; font-weight: 700; min-width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; padding: 2px; border: 1.5px solid #FFFFFF;"><?php echo intval( $bell_count ); ?></span>
-                <?php endif; ?>
-            </a>
             
             <div class="profile-dropdown-container" style="position: relative; display: inline-block; vertical-align: middle; margin-right: 12px;">
                 <button class="profile-avatar-btn" aria-label="<?php esc_attr_e( 'User menu', 'secondinnings50' ); ?>" aria-haspopup="true" aria-expanded="false" style="display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #333333; background: #FFFFFF; color: #333333; cursor: pointer; padding: 0; position: relative;">
@@ -104,13 +87,12 @@
                     </div>
                     <a href="<?php echo esc_url( home_url( '/profile/?tab=info' ) ); ?>" style="display: block; padding: 10px 15px; text-decoration: none; color: var(--color-charcoal); font-weight: 600; font-size: var(--fs-xs); transition: background 0.2s;" onmouseover="this.style.background='var(--color-forest-light)';" onmouseout="this.style.background='none';"><?php esc_html_e( 'My Profile', 'secondinnings50' ); ?></a>
                     <a href="<?php echo esc_url( home_url( '/profile/?tab=preferences' ) ); ?>" style="display: block; padding: 10px 15px; text-decoration: none; color: var(--color-charcoal); font-weight: 600; font-size: var(--fs-xs); transition: background 0.2s;" onmouseover="this.style.background='var(--color-forest-light)';" onmouseout="this.style.background='none';"><?php esc_html_e( 'My Preferences', 'secondinnings50' ); ?></a>
-                    <a href="<?php echo esc_url( home_url( '/profile/?tab=connections' ) ); ?>" style="display: block; padding: 10px 15px; text-decoration: none; color: var(--color-charcoal); font-weight: 600; font-size: var(--fs-xs); transition: background 0.2s;" onmouseover="this.style.background='var(--color-forest-light)';" onmouseout="this.style.background='none';"><?php esc_html_e( 'My Connections', 'secondinnings50' ); ?></a>
                     <div style="border-top: 1.5px solid var(--color-border); margin-top: 5px; padding-top: 5px;">
                         <a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>" style="display: block; padding: 10px 15px; text-decoration: none; color: var(--color-terracotta); font-weight: 700; font-size: var(--fs-xs); transition: background 0.2s;" onmouseover="this.style.background='var(--color-terracotta-light)';" onmouseout="this.style.background='none';"><?php esc_html_e( 'Log Out', 'secondinnings50' ); ?></a>
                     </div>
                 </div>
             </div>
-            <a href="<?php echo esc_url( home_url( '/directory/' ) ); ?>" class="btn btn-primary btn-nav"><?php esc_html_e( 'Directory', 'secondinnings50' ); ?></a>
+            <a href="<?php echo esc_url( home_url( '/profile/' ) ); ?>" class="btn btn-primary btn-nav"><?php esc_html_e( 'My Profile', 'secondinnings50' ); ?></a>
         <?php else : ?>
             <a href="#login" class="btn btn-secondary btn-nav si50-trigger-login" style="margin-right: 8px;"><?php esc_html_e( 'Log In', 'secondinnings50' ); ?></a>
         <?php endif; ?>
@@ -147,19 +129,7 @@
           echo '<li><a href="' . esc_url( home_url( '/contact/' ) ) . '" class="mobile-nav-link">' . esc_html__( 'Contact Us', 'secondinnings50' ) . '</a></li>';
           
           if ( is_user_logged_in() ) {
-              global $wpdb;
-              $table_name = $wpdb->prefix . 'si50_connect_requests';
-              $bell_count = 0;
-              if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
-                  $bell_count = $wpdb->get_var( $wpdb->prepare(
-                      "SELECT COUNT(*) FROM $table_name WHERE receiver_id = %d AND status = 'pending'",
-                      get_current_user_id()
-                  ) );
-              }
-              $bell_text = $bell_count > 0 ? sprintf( esc_html__( 'Notifications (%d)', 'secondinnings50' ), $bell_count ) : esc_html__( 'Notifications', 'secondinnings50' );
-              echo '<li><a href="' . esc_url( home_url( '/notifications/' ) ) . '" class="mobile-nav-link">' . $bell_text . '</a></li>';
               echo '<li><a href="' . esc_url( home_url( '/profile/' ) ) . '" class="mobile-nav-link">' . esc_html__( 'My Profile', 'secondinnings50' ) . '</a></li>';
-              echo '<li><a href="' . esc_url( home_url( '/directory/' ) ) . '" class="mobile-nav-link">' . esc_html__( 'Directory', 'secondinnings50' ) . '</a></li>';
               echo '<li><a href="' . esc_url( wp_logout_url( home_url( '/' ) ) ) . '" class="mobile-nav-link">' . esc_html__( 'Log Out', 'secondinnings50' ) . '</a></li>';
           } else {
               echo '<li><a href="#login" class="mobile-nav-link si50-trigger-login">' . esc_html__( 'Log In', 'secondinnings50' ) . '</a></li>';

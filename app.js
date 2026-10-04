@@ -454,9 +454,10 @@ function initJoinFormValidation() {
       isValid = false;
     }
 
-    // 5. Age
-    if (!ageVal) {
-      showError(ageInput, "join-age-error", "Please enter your age.");
+    // 5. Age (typed number — no spinner arrows)
+    const ageNum = parseInt(ageVal, 10);
+    if (!ageVal || Number.isNaN(ageNum) || ageNum < 40 || ageNum > 100) {
+      showError(ageInput, "join-age-error", "Please enter a valid age between 40 and 100.");
       isValid = false;
     }
 
@@ -1142,222 +1143,11 @@ function initLoginModal() {
 }
 
 /**
- * 9. Handles connect handshake requests AJAX in the Directory grid
+ * 9. Member-to-member connect / interest / browse actions removed.
+ * Matching is Admin-only. Kept as empty stub so init call stays safe.
  */
 function initDirectoryActions() {
-  const ajaxUrl = typeof si50_ajax !== "undefined" ? si50_ajax.ajax_url : "/wp-admin/admin-ajax.php";
-
-  // Interest Submission Buttons (Admin Matchmaking)
-  const interestBtns = document.querySelectorAll(".si50-btn-interest");
-  interestBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const receiverId = btn.getAttribute("data-receiver-id");
-      if (!receiverId) return;
-
-      btn.disabled = true;
-      const originalText = btn.innerText;
-      btn.innerText = "Submitting Interest...";
-
-      const formData = new FormData();
-      formData.append("action", "si50_submit_interest");
-      formData.append("receiver_id", receiverId);
-
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          btn.innerText = "⏱ Interest Submitted";
-          btn.style.opacity = "0.7";
-          btn.style.cursor = "not-allowed";
-        } else {
-          btn.disabled = false;
-          btn.innerText = originalText;
-          alert(data.data.message || "Failed to submit interest.");
-        }
-      })
-      .catch(err => {
-        console.error("Interest Request Error:", err);
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert("Failed to submit interest request. Please try again.");
-      });
-    });
-  });
-
-  // Accept Requests Buttons
-  const acceptBtns = document.querySelectorAll(".si50-btn-accept");
-  acceptBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const senderId = btn.getAttribute("data-sender-id");
-      if (!senderId) return;
-
-      btn.disabled = true;
-      btn.innerText = "Accepting...";
-
-      const formData = new FormData();
-      formData.append("action", "si50_respond_connect");
-      formData.append("sender_id", senderId);
-      formData.append("response", "approved");
-
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          window.location.reload();
-        } else {
-          btn.disabled = false;
-          btn.innerText = "Accept Request";
-          alert(data.data.message || "Failed to accept request.");
-        }
-      })
-      .catch(err => {
-        console.error("Accept Error:", err);
-        btn.disabled = false;
-        btn.innerText = "Accept Request";
-      });
-    });
-  });
-
-  // Decline Requests Buttons
-  const declineBtns = document.querySelectorAll(".si50-btn-decline");
-  declineBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const senderId = btn.getAttribute("data-sender-id");
-      if (!senderId) return;
-
-      if (!confirm("Are you sure you want to decline this request?")) return;
-
-      btn.disabled = true;
-      btn.innerText = "Declining...";
-
-      const formData = new FormData();
-      formData.append("action", "si50_respond_connect");
-      formData.append("sender_id", senderId);
-      formData.append("response", "declined");
-
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          window.location.reload();
-        } else {
-          btn.disabled = false;
-          btn.innerText = "Decline";
-          alert(data.data.message || "Failed to decline request.");
-        }
-      })
-      .catch(err => {
-        console.error("Decline Error:", err);
-        btn.disabled = false;
-        btn.innerText = "Decline";
-      });
-    });
-  });
-
-  // Report Buttons
-  const reportBtns = document.querySelectorAll(".si50-btn-report-member");
-  reportBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const reportedId = btn.getAttribute("data-reported-id");
-      const reportedName = btn.getAttribute("data-reported-name");
-      if (!reportedId) return;
-
-      const reason = prompt(`Please specify a professional warning reason or feedback for reporting ${reportedName}'s profile:`);
-      if (reason === null) return; // Cancelled
-      if (reason.trim().length < 5) {
-        alert("Please enter a valid reporting reason (minimum 5 characters).");
-        return;
-      }
-
-      btn.disabled = true;
-      const originalText = btn.innerText;
-      btn.innerText = "Reporting...";
-
-      const formData = new FormData();
-      formData.append("action", "si50_report_member");
-      formData.append("reported_user_id", reportedId);
-      formData.append("reason", reason);
-      if (typeof si50_ajax !== "undefined" && si50_ajax.nonce) {
-        formData.append("security", si50_ajax.nonce);
-      }
-
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert(data.data.message);
-          window.location.reload();
-        } else {
-          btn.disabled = false;
-          btn.innerText = originalText;
-          alert(data.data.message || "Failed to submit report.");
-        }
-      })
-      .catch(err => {
-        console.error("Report Error:", err);
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert("Failed to report profile. Please try again.");
-      });
-    });
-  });
-
-  // Block Buttons
-  const blockBtns = document.querySelectorAll(".si50-btn-block-member");
-  blockBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const blockedId = btn.getAttribute("data-blocked-id");
-      const blockedName = btn.getAttribute("data-blocked-name");
-      if (!blockedId) return;
-
-      if (!confirm(`Are you sure you want to block ${blockedName}? You will no longer view their profile in the directory.`)) return;
-
-      btn.disabled = true;
-      const originalText = btn.innerText;
-      btn.innerText = "Blocking...";
-
-      const formData = new FormData();
-      formData.append("action", "si50_block_member");
-      formData.append("blocked_user_id", blockedId);
-      if (typeof si50_ajax !== "undefined" && si50_ajax.nonce) {
-        formData.append("security", si50_ajax.nonce);
-      }
-
-      fetch(ajaxUrl, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert(data.data.message);
-          window.location.reload();
-        } else {
-          btn.disabled = false;
-          btn.innerText = originalText;
-          alert(data.data.message || "Failed to block member.");
-        }
-      })
-      .catch(err => {
-        console.error("Block Error:", err);
-        btn.disabled = false;
-        btn.innerText = originalText;
-        alert("Failed to block profile. Please try again.");
-      });
-    });
-  });
+  // Intentionally empty: no interest, connect, report, or block UI on member side.
 }
 
 /**
@@ -1526,10 +1316,15 @@ function initProfileFormValidation() {
       isValid = false;
     }
 
-    // 3. Age
-    if (!ageVal) {
-      showError(ageInput, "profile-age-error", "Please select your age range.");
-      isValid = false;
+    // 3. Age (typed number — no spinner arrows)
+    const ageNum = parseInt(ageVal, 10);
+    if (!ageVal || Number.isNaN(ageNum) || ageNum < 40 || ageNum > 100) {
+      // Allow legacy bracket values still stored on older profiles
+      const legacyBrackets = ["40-45", "46-50", "51-55", "56-60", "60+"];
+      if (!legacyBrackets.includes(ageVal)) {
+        showError(ageInput, "profile-age-error", "Please enter a valid age between 40 and 100.");
+        isValid = false;
+      }
     }
 
     // 4. Marital

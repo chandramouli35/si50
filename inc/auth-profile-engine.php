@@ -11,6 +11,64 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Normalize age from typed number (e.g. 53) or legacy bracket (e.g. 51-55).
+ * Returns a clean string to store in si50_age_bracket, or empty string if invalid.
+ */
+function si50_normalize_age_input( $raw ) {
+	$raw = trim( (string) $raw );
+	if ( '' === $raw ) {
+		return '';
+	}
+
+	// Legacy bracket values — keep as-is.
+	$legacy = array( '40-45', '46-50', '51-55', '56-60', '60+' );
+	if ( in_array( $raw, $legacy, true ) ) {
+		return $raw;
+	}
+
+	// Typed numeric age.
+	if ( preg_match( '/^\d{2,3}$/', $raw ) ) {
+		$age = intval( $raw );
+		if ( $age >= 40 && $age <= 100 ) {
+			return (string) $age;
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Check whether a stored age value matches a directory age-bracket filter.
+ */
+function si50_age_matches_filter( $stored, $filter ) {
+	$stored = trim( (string) $stored );
+	$filter = trim( (string) $filter );
+	if ( '' === $stored || '' === $filter ) {
+		return false;
+	}
+	if ( $stored === $filter ) {
+		return true;
+	}
+
+	// Numeric age vs bracket filter.
+	if ( preg_match( '/^\d{2,3}$/', $stored ) ) {
+		$age = intval( $stored );
+		$ranges = array(
+			'40-45' => array( 40, 45 ),
+			'46-50' => array( 46, 50 ),
+			'51-55' => array( 51, 55 ),
+			'56-60' => array( 56, 60 ),
+			'60+'   => array( 60, 100 ),
+		);
+		if ( isset( $ranges[ $filter ] ) ) {
+			return ( $age >= $ranges[ $filter ][0] && $age <= $ranges[ $filter ][1] );
+		}
+	}
+
+	return false;
+}
+
+/**
  * 1. AJAX Registration Handler
  */
 function si50_ajax_register() {
@@ -18,7 +76,14 @@ function si50_ajax_register() {
 
 	$name            = isset( $_POST['fullname'] ) ? sanitize_text_field( $_POST['fullname'] ) : '';
 	$dob             = isset( $_POST['dob'] ) ? sanitize_text_field( $_POST['dob'] ) : '';
-	$age_bracket     = isset( $_POST['age_bracket'] ) ? sanitize_text_field( $_POST['age_bracket'] ) : '';
+	// Accept typed age (name="age") or legacy age_bracket select.
+	$age_raw         = '';
+	if ( isset( $_POST['age'] ) && '' !== $_POST['age'] ) {
+		$age_raw = sanitize_text_field( $_POST['age'] );
+	} elseif ( isset( $_POST['age_bracket'] ) ) {
+		$age_raw = sanitize_text_field( $_POST['age_bracket'] );
+	}
+	$age_bracket     = si50_normalize_age_input( $age_raw );
 	$marital_status  = isset( $_POST['marital_status'] ) ? sanitize_text_field( $_POST['marital_status'] ) : '';
 	$occupation      = isset( $_POST['occupation'] ) ? sanitize_text_field( $_POST['occupation'] ) : '';
 	$gender          = isset( $_POST['gender'] ) ? sanitize_text_field( $_POST['gender'] ) : '';
@@ -45,6 +110,10 @@ function si50_ajax_register() {
 	// Emergency contact removed for now
 	if ( empty( $name ) || empty( $email ) || empty( $phone ) || empty( $password ) || empty( $gender ) || empty( $city_state ) ) {
 		wp_send_json_error( array( 'message' => esc_html__( 'Please fill out all required fields.', 'secondinnings50' ) ) );
+	}
+
+	if ( empty( $age_bracket ) ) {
+		wp_send_json_error( array( 'message' => esc_html__( 'Please enter a valid age (40–100).', 'secondinnings50' ) ) );
 	}
 
 	if ( ! is_email( $email ) ) {
@@ -295,7 +364,7 @@ function si50_ajax_login() {
 
 	wp_send_json_success( array(
 		'message'  => esc_html__( 'Login successful! Redirecting...', 'secondinnings50' ),
-		'redirect' => home_url( '/directory/' )
+		'redirect' => home_url( '/profile/' )
 	) );
 }
 add_action( 'wp_ajax_si50_ajax_login', 'si50_ajax_login' );
@@ -308,6 +377,12 @@ function si50_ajax_submit_interest() {
 	if ( ! is_user_logged_in() ) {
 		wp_send_json_error( array( 'message' => esc_html__( 'Please log in to express interest.', 'secondinnings50' ) ) );
 	}
+
+	// PRIVACY LOCK: Members cannot browse or request other profiles.
+	// Matching / introductions are Admin-curated only.
+	wp_send_json_error( array(
+		'message' => esc_html__( 'Member profiles are private. Companionship introductions are shared only by the SecondInnings team after careful review. Please contact our team if you need support.', 'secondinnings50' ),
+	) );
 
 	$sender_id   = get_current_user_id();
 	$receiver_id = isset( $_POST['receiver_id'] ) ? intval( $_POST['receiver_id'] ) : 0;
@@ -420,7 +495,14 @@ function si50_ajax_update_profile_info() {
 
 	$name            = isset( $_POST['fullname'] ) ? sanitize_text_field( $_POST['fullname'] ) : '';
 	$dob             = isset( $_POST['dob'] ) ? sanitize_text_field( $_POST['dob'] ) : '';
-	$age_bracket     = isset( $_POST['age_bracket'] ) ? sanitize_text_field( $_POST['age_bracket'] ) : '';
+	// Accept typed age (name="age") or legacy age_bracket select.
+	$age_raw         = '';
+	if ( isset( $_POST['age'] ) && '' !== $_POST['age'] ) {
+		$age_raw = sanitize_text_field( $_POST['age'] );
+	} elseif ( isset( $_POST['age_bracket'] ) ) {
+		$age_raw = sanitize_text_field( $_POST['age_bracket'] );
+	}
+	$age_bracket     = si50_normalize_age_input( $age_raw );
 	$marital_status  = isset( $_POST['marital_status'] ) ? sanitize_text_field( $_POST['marital_status'] ) : '';
 	$occupation      = isset( $_POST['occupation'] ) ? sanitize_text_field( $_POST['occupation'] ) : '';
 	$gender          = isset( $_POST['gender'] ) ? sanitize_text_field( $_POST['gender'] ) : '';
@@ -432,15 +514,20 @@ function si50_ajax_update_profile_info() {
 	$password        = isset( $_POST['password'] ) ? $_POST['password'] : '';
 	$password_confirm = isset( $_POST['password_confirm'] ) ? $_POST['password_confirm'] : '';
 	$location_preference = isset( $_POST['location_preference'] ) ? sanitize_text_field( $_POST['location_preference'] ) : '';
-	$visibility      = isset( $_POST['profile_visibility'] ) ? sanitize_key( $_POST['profile_visibility'] ) : 'public';
+	// Profiles are always private to members; only admin team reviews for matching.
+	$visibility      = 'private';
 
 	// Basic validation checks
 	if ( empty( $name ) || empty( $phone ) || empty( $gender ) || empty( $city_state ) ) {
 		wp_send_json_error( array( 'message' => esc_html__( 'All required fields must be filled out.', 'secondinnings50' ) ) );
 	}
 
+	if ( empty( $age_bracket ) ) {
+		wp_send_json_error( array( 'message' => esc_html__( 'Please enter a valid age (40–100).', 'secondinnings50' ) ) );
+	}
+
 	if ( ! in_array( $visibility, array( 'public', 'connections', 'private' ), true ) ) {
-		$visibility = 'public';
+		$visibility = 'private';
 	}
 
 	// Password validation if provided

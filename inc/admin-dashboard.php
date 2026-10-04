@@ -737,7 +737,7 @@ if ( isset( $_POST['si50_wa_womens_lounge_capacity'] ) ) {
 				// Send WhatsApp Welcome Message Webhook
 				$user_phone = get_user_meta( $user_id, 'si50_phone', true );
 				if ( ! empty( $user_phone ) ) {
-					$welcome_msg = esc_html__( "Welcome to SecondInnings50! Your membership application has been manually reviewed and fully verified by our onboarding hosts. You can now log into the platform, browse the directory, and connect with compatible peers. Link: https://secondinnings50.in", 'secondinnings50' );
+					$welcome_msg = esc_html__( "Welcome to SecondInnings50! Your membership is verified. For privacy, profiles are not open for browsing. Our team will share suitable companionship introductions with you personally. Login: https://secondinnings50.in", 'secondinnings50' );
 					si50_send_whatsapp_alert( $user_phone, $welcome_msg );
 				}
 
@@ -1876,6 +1876,7 @@ function si50_render_admin_onboarding_page() {
 						$u_age = get_user_meta( $u->ID, 'si50_age_bracket', true );
 						$u_city = get_user_meta( $u->ID, 'si50_city_state', true );
 						$u_gender = get_user_meta( $u->ID, 'si50_gender', true );
+						$u_phone = get_user_meta( $u->ID, 'si50_phone', true );
 						
 						// Find matches
 						$matches = array();
@@ -1905,8 +1906,14 @@ function si50_render_admin_onboarding_page() {
 						});
 				?>
 					<div style="border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; padding: 15px;">
-						<h3 style="margin-top:0; color: #1B3B2B; display: flex; align-items: center; justify-content: space-between;">
+						<h3 style="margin-top:0; color: #1B3B2B; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
 							<span>👤 <?php echo esc_html($u_name); ?> (<?php echo esc_html($u_age); ?>, <?php echo esc_html($u_city); ?>)</span>
+							<span style="font-size: 13px; font-weight: 600; color: #5f6368;">
+								📞 <?php echo esc_html( $u_phone ); ?>
+								<?php if ( ! empty( $u_phone ) ) : ?>
+									<a href="https://wa.me/<?php echo esc_attr( preg_replace( '/[^0-9]/', '', $u_phone ) ); ?>" target="_blank" style="margin-left: 8px; color: #25D366; text-decoration: none; font-weight: 700;">WhatsApp</a>
+								<?php endif; ?>
+							</span>
 						</h3>
 						<div class="si50-table-container">
 							<table class="si50-list-table">
@@ -1936,7 +1943,7 @@ function si50_render_admin_onboarding_page() {
 											</span>
 										</td>
 										<td>
-											<a href="https://wa.me/<?php echo esc_attr( ltrim( $mu_phone, '+' ) ); ?>" target="_blank" class="si50-action-btn" style="background: #25D366; color: white; border-color: #1DA851;">
+											<a href="https://wa.me/<?php echo esc_attr( preg_replace( '/[^0-9]/', '', $mu_phone ) ); ?>" target="_blank" class="si50-action-btn" style="background: #25D366; color: white; border-color: #1DA851;">
 												💬 <?php esc_html_e( 'Share via WhatsApp', 'secondinnings50' ); ?>
 											</a>
 										</td>

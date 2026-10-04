@@ -586,8 +586,8 @@ function si50_seo_meta_tags() {
 		$og_title = esc_html__( 'Begin Your New Beginning | Secure Application Gateway | SecondInnings50', 'secondinnings50' );
 		$og_desc  = esc_html__( 'Join SecondInnings50 today. Secure onboarding and safety verification for companionship, friendship, and meaningful shared partnerships.', 'secondinnings50' );
 	} elseif ( is_page( 'directory' ) || is_page( 'members' ) ) {
-		$og_title = esc_html__( 'Vetted Senior Directory | Meaningful Connections | SecondInnings50', 'secondinnings50' );
-		$og_desc  = esc_html__( 'Browse our secure, vetted directory of active adults over 45 seeking companionship, friendship, and shared life partnerships.', 'secondinnings50' );
+		$og_title = esc_html__( 'Private Team-Curated Companionship | SecondInnings50', 'secondinnings50' );
+		$og_desc  = esc_html__( 'Member profiles are private. Suitable companionship introductions are shared personally by the SecondInnings team after careful review.', 'secondinnings50' );
 	} elseif ( is_page( 'profile' ) || is_page( 'my-profile' ) ) {
 		$og_title = esc_html__( 'My Profile Settings | SecondInnings50', 'secondinnings50' );
 		$og_desc  = esc_html__( 'Manage your member profile, update social matching preferences, and view your approved community connections securely.', 'secondinnings50' );
@@ -1581,7 +1581,10 @@ function si50_admin_edit_user_profile( $user ) {
         </tr>
         <tr>
             <th><label for="si50_age_bracket">Age</label></th>
-            <td><input type="text" name="si50_age_bracket" id="si50_age_bracket" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_age_bracket', true ) ); ?>" class="regular-text" /></td>
+            <td>
+                <input type="text" inputmode="numeric" name="si50_age_bracket" id="si50_age_bracket" value="<?php echo esc_attr( get_user_meta( $user->ID, 'si50_age_bracket', true ) ); ?>" class="regular-text" placeholder="e.g. 53" />
+                <p class="description">Type the age as a number (40–100). No spinner arrows.</p>
+            </td>
         </tr>
         <tr>
             <th><label for="si50_city_state">City & State</label></th>
@@ -1633,10 +1636,20 @@ function si50_admin_save_user_profile( $user_id ) {
     if ( ! current_user_can( 'edit_user', $user_id ) ) return false;
     
     // Save simple text fields
-    $text_fields = ['si50_verification_selfie_url', 'si50_fullname', 'si50_age_bracket', 'si50_city_state', 'si50_occupation', 'si50_marital_status', 'si50_phone'];
+    $text_fields = ['si50_verification_selfie_url', 'si50_fullname', 'si50_city_state', 'si50_occupation', 'si50_marital_status', 'si50_phone'];
     foreach ($text_fields as $field) {
         if ( isset($_POST[$field]) ) {
             update_user_meta( $user_id, $field, sanitize_text_field($_POST[$field]) );
+        }
+    }
+
+    // Age: accept typed number or legacy bracket
+    if ( isset($_POST['si50_age_bracket']) ) {
+        $normalized_age = function_exists('si50_normalize_age_input')
+            ? si50_normalize_age_input( sanitize_text_field( $_POST['si50_age_bracket'] ) )
+            : sanitize_text_field( $_POST['si50_age_bracket'] );
+        if ( '' !== $normalized_age ) {
+            update_user_meta( $user_id, 'si50_age_bracket', $normalized_age );
         }
     }
     

@@ -155,7 +155,7 @@ get_header();
     <div class="handshake-box">
       <h4>🔒 <?php esc_html_e( 'The Masked Contact Handshake Protocol', 'secondinnings50' ); ?></h4>
       <p>
-        <?php esc_html_e( 'To eliminate unsolicited outreach, advertising spam, or invasive contact attempts, your WhatsApp number and email address are strictly masked in the directory. Other verified members can view your name, location, interests, and bio, but they cannot see your phone number or email. This information is only revealed once a connection request is intentionally sent by one party and explicitly accepted by the other. You remain in complete control of your communication gateway.', 'secondinnings50' ); ?>
+        <?php esc_html_e( 'To protect your privacy, other members cannot browse your profile, full name, or contact details on the website. Matching is handled privately by the SecondInnings team. Suitable companionship introductions are shared with you personally only after careful review. Contact details are never shared without consent from both parties.', 'secondinnings50' ); ?>
       </p>
     </div>
 
